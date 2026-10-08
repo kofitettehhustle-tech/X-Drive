@@ -112,6 +112,7 @@
     /* --- Audio Systems --- */
     let _welcomeAudio = null;
     let _playlistAudio = null;
+    let _transitionAudio = null;
     let _isTransitioning = false;
 
     /* --- DOM References --- */
@@ -345,64 +346,69 @@
 
     function playNext() {
         const nextIndex = (_currentTrackIndex + 1) % CONFIG.playlistTracks.length;
-        
-        if (_radioState === STATE.PLAYING) {
-            const currentAudio = _playlistAudio;
-            crossfadeOut(currentAudio, _crossfadeDuration / 2);
-        }
-        
-        loadTrack(nextIndex);
-        
-        if (_radioState === STATE.PLAYING) {
-            const onReady = () => {
-                _playlistAudio.removeEventListener('canplay', onReady);
-                _playlistAudio.volume = 0;
-                _playlistAudio.play().then(() => {
-                    crossfadeIn(_playlistAudio, _crossfadeDuration);
-                }).catch(e => console.error('[XDriveRadio] Next track play error:', e));
-            };
-            
-            if (_playlistAudio.readyState >= 3) {
-                _playlistAudio.volume = 0;
-                _playlistAudio.play().then(() => {
-                    crossfadeIn(_playlistAudio, _crossfadeDuration);
-                }).catch(e => console.error('[XDriveRadio] Next track play error:', e));
-            } else {
-                _playlistAudio.addEventListener('canplay', onReady);
-            }
-        }
-        
-        preloadNextTracks(2);
+        transitionToTrack(nextIndex);
     }
 
     function playPrevious() {
         const prevIndex = (_currentTrackIndex - 1 + CONFIG.playlistTracks.length) % CONFIG.playlistTracks.length;
-        
-        if (_radioState === STATE.PLAYING) {
-            const currentAudio = _playlistAudio;
-            crossfadeOut(currentAudio, _crossfadeDuration / 2);
+        transitionToTrack(prevIndex);
+    }
+
+    // Use a second audio element for the incoming track. Fading the outgoing
+    // element after replacing its src can otherwise pause the new track when
+    // the old fade timer completes.
+    function transitionToTrack(index) {
+        if (index < 0 || index >= CONFIG.playlistTracks.length || _isTransitioning) return;
+        if (_radioState !== STATE.PLAYING || !_playlistAudio) {
+            loadTrack(index);
+            return;
         }
-        
-        loadTrack(prevIndex);
-        
-        if (_radioState === STATE.PLAYING) {
-            const onReady = () => {
-                _playlistAudio.removeEventListener('canplay', onReady);
-                _playlistAudio.volume = 0;
-                _playlistAudio.play().then(() => {
-                    crossfadeIn(_playlistAudio, _crossfadeDuration);
-                }).catch(e => console.error('[XDriveRadio] Previous track play error:', e));
-            };
-            
-            if (_playlistAudio.readyState >= 3) {
-                _playlistAudio.volume = 0;
-                _playlistAudio.play().then(() => {
-                    crossfadeIn(_playlistAudio, _crossfadeDuration);
-                }).catch(e => console.error('[XDriveRadio] Previous track play error:', e));
-            } else {
-                _playlistAudio.addEventListener('canplay', onReady);
-            }
-        }
+
+        const outgoing = _playlistAudio;
+        const incoming = new Audio();
+        const trackPath = 'assets/audio/Playlist-1/' + CONFIG.playlistTracks[index];
+        _transitionAudio = incoming;
+        _isTransitioning = true;
+        incoming.preload = 'auto';
+        incoming.volume = 0;
+        incoming.muted = _isMuted;
+        incoming.addEventListener('ended', handleTrackEnded);
+        incoming.addEventListener('error', function () {
+            console.error('[XDriveRadio] Could not load track:', trackPath);
+            _transitionAudio = null;
+            _isTransitioning = false;
+            setRadioState(STATE.ERROR);
+        }, { once: true });
+        incoming.src = trackPath;
+
+        const beginTransition = () => {
+            incoming.removeEventListener('canplay', beginTransition);
+            incoming.play().then(() => {
+                _playlistAudio = incoming;
+                _currentTrackIndex = index;
+                updateDrawerUI();
+                if (_msgEl) _msgEl.textContent = getTrackName(CONFIG.playlistTracks[index]);
+                Promise.all([
+                    crossfadeIn(incoming, _crossfadeDuration),
+                    crossfadeOut(outgoing, _crossfadeDuration)
+                ]).then(() => {
+                    outgoing.removeEventListener('ended', handleTrackEnded);
+                    _transitionAudio = null;
+                    _isTransitioning = false;
+                    _playlistPlayerState = PLAYLIST_STATE.PLAYING;
+                    preloadNextTracks(2);
+                });
+            }).catch(error => {
+                console.error('[XDriveRadio] Track transition failed:', error);
+                incoming.removeEventListener('ended', handleTrackEnded);
+                _transitionAudio = null;
+                _isTransitioning = false;
+                setRadioState(STATE.ERROR);
+            });
+        };
+
+        if (incoming.readyState >= 3) beginTransition();
+        else incoming.addEventListener('canplay', beginTransition, { once: true });
     }
 
     function updateDrawerUI() {
@@ -609,6 +615,7 @@
             _userPaused = true;
             SS.set(STORAGE_KEYS.USER_PAUSED, 'true');
             if (_playlistAudio) _playlistAudio.pause();
+            if (_transitionAudio) _transitionAudio.pause();
             setRadioState(STATE.PAUSED);
             _playlistPlayerState = PLAYLIST_STATE.PAUSED;
             updatePlayPauseIcon();
@@ -673,6 +680,9 @@
 
         if (_playlistAudio) {
             _playlistAudio.muted = _isMuted;
+        }
+        if (_transitionAudio) {
+            _transitionAudio.muted = _isMuted;
         }
 
         const volIcon = document.getElementById('xdrive-radio-icon-vol');
