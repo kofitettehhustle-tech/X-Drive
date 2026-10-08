@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin - X Drive</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components-rebuilt.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Admin specific theme overrides */
+        :root {
+            --color-surface: #1a1a24;
+            --color-border: #2d2d3a;
+            --color-primary: #8b5cf6;
+            --color-primary-hover: #7c3aed;
+        }
+        
+        .admin-sidebar {
+            background-color: #111118;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .stat-card {
+            padding: var(--space-lg);
+            border-top: 3px solid transparent;
+        }
+        
+        .stat-card.primary { border-top-color: var(--color-primary); }
+        .stat-card.success { border-top-color: var(--color-success); }
+        .stat-card.warning { border-top-color: var(--color-warning); }
+        
+        .stat-title {
+            color: var(--color-muted);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar admin-sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo" style="color: var(--color-primary);">X DRIVE MASTER</a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="sidebar-link active">Dashboard</a>
+                <a href="orders.html" class="sidebar-link">Orders</a>
+                <a href="customers.html" class="sidebar-link">Customers</a>
+                <a href="resellers.html" class="sidebar-link">Resellers</a>
+                <a href="services.html" class="sidebar-link">Services</a>
+                <a href="suppliers.html" class="sidebar-link">Suppliers</a>
+                <a href="pricing.html" class="sidebar-link">Pricing</a>
+                <a href="payments.html" class="sidebar-link">Payments</a>
+                <a href="settings.html" class="sidebar-link">Settings</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header style="margin-bottom: var(--space-2xl);">
+                <h2>Platform Overview</h2>
+                <p class="text-muted">Master Administration Console</p>
+            </header>
+
+            <div class="stats-grid" id="admin-stats">
+                <!-- Populated by JS -->
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-lg);">
+                <div class="card">
+                    <h3 style="margin-bottom: var(--space-md);">Recent Platform Activity</h3>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Entity</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge badge-success">New Order</span></td>
+                                    <td>Reseller: BoostSocial</td>
+                                    <td>$2.50</td>
+                                    <td>2 mins ago</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-primary" style="background-color: rgba(139, 92, 246, 0.1); color: var(--color-primary);">New Reseller</span></td>
+                                    <td>SocialKings</td>
+                                    <td>-</td>
+                                    <td>15 mins ago</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-warning">Supplier Fulfillment</span></td>
+                                    <td>Panelika API</td>
+                                    <td>$0.98</td>
+                                    <td>1 hour ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: var(--space-md);">Supplier Status</h3>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border);">
+                            <div>
+                                <strong>Panelika</strong>
+                                <div class="text-muted" style="font-size: 0.75rem;">Primary API</div>
+                            </div>
+                            <span class="badge badge-success">Connected</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border);">
+                            <div>
+                                <strong>Supplier B</strong>
+                                <div class="text-muted" style="font-size: 0.75rem;">Backup API</div>
+                            </div>
+                            <span class="badge badge-success">Connected</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Supplier C</strong>
+                                <div class="text-muted" style="font-size: 0.75rem;">Specialty Services</div>
+                            </div>
+                            <span class="badge badge-danger">Offline</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/mock-data.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statsGrid = document.getElementById('admin-stats');
+            
+            if (window.XDriveMockData && window.XDriveMockData.platformStats) {
+                const stats = window.XDriveMockData.platformStats;
+                
+                statsGrid.innerHTML = `
+                    <div class="card stat-card primary">
+                        <div class="stat-title">Total Revenue</div>
+                        <div class="stat-value">${window.formatCurrency(stats.totalRevenue)}</div>
+                    </div>
+                    <div class="card stat-card success">
+                        <div class="stat-title">X Drive Profit</div>
+                        <div class="stat-value text-success">${window.formatCurrency(stats.xDriveProfit)}</div>
+                    </div>
+                    <div class="card stat-card warning">
+                        <div class="stat-title">Reseller Revenue</div>
+                        <div class="stat-value">${window.formatCurrency(stats.resellerRevenue)}</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-title">Active Resellers</div>
+                        <div class="stat-value">${stats.activeResellers}</div>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

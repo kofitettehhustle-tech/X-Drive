@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Drive - Grow your social presence</title>
+    <meta name="description" content="Discover social-media growth services for the platforms that matter to you.">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components-rebuilt.css">
+    <link rel="stylesheet" href="css/info.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/hero.css">
+    <link rel="stylesheet" href="css/service-stack.css">
+    <link rel="stylesheet" href="css/xdrive-radio.css">
+    <script src="js/mock-data.js" defer></script>
+    <script src="js/catalog.js" defer></script>
+    <script src="js/hero.js" defer></script>
+    <script src="js/service-stack.js" defer></script>
+    <style>
+        /* Platform Section */
+        .platforms {
+            padding: var(--space-3xl) 0;
+            border-top: 1px solid green;
+            border-bottom: 1px solid yellowgreen;
+            background-color: whitesmoke;
+        }
+
+        .platform-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+
+            gap: var(--space-xl);
+            opacity: 0.9;
+        }
+
+        .platform-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            color: black;
+            transition: opacity 0.2s;
+        }
+
+        .platform-icon:hover {
+            opacity: 1 !important;
+        }
+
+        .platform-icon i {
+            font-size: 1.5rem;
+        }
+
+        .platform-icon span {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Stacked Services Section */
+        .stacked-services-section {
+            padding: 120px 0;
+            background-color: var(--color-background);
+            min-height: 150vh;
+            /* Allow for scrolling */
+            position: relative;
+        }
+
+        .stacked-container {
+            position: sticky;
+            top: 120px;
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .stack-card {
+            position: absolute;
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s ease;
+            transform-origin: top center;
+        }
+
+        .stack-card h3 {
+            margin-bottom: var(--space-sm);
+            color: var(--color-text);
+        }
+
+        .stack-card p {
+            color: var(--color-muted);
+            margin-bottom: var(--space-lg);
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">X Drive</a>
+
+            <nav class="nav-links">
+                <a href="services.html">Services</a>
+                <a href="help.html#workflow">How It Works</a>
+                <a href="help.html#order-updates">Order Updates</a>
+                <a href="help.html#faqs">FAQs</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-outline">Log In</a>
+                <a href="signup.html" class="btn btn-primary">Get Started</a>
+                <button class="mobile-menu-btn">☰</button>
+            </div>
+        </div>
+        <div class="delivery-speed-strip" data-delivery-speed role="status" aria-live="polite">
+            <i class="delivery-speed-icon ri-time-line" aria-hidden="true"></i>
+            <strong class="delivery-speed-label">LIVE</strong>
+            <span class="delivery-speed-message" data-delivery-speed-message>X Drive delivery speed estimates will appear here when available.</span>
+            <span class="delivery-speed-updated" data-delivery-speed-updated hidden></span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="x-drive-hero">
+            <div class="hero-ascii-bg" id="asciiVisual" aria-hidden="true">
+                <div class="hero-grid"></div>
+                <div class="hero-network">
+                    <span class="hero-connection hero-connection--one"></span>
+                    <span class="hero-connection hero-connection--two"></span>
+                    <span class="hero-connection hero-connection--three"></span>
+                    <span class="hero-connection hero-connection--four"></span>
+                    <span class="hero-platform-node hero-platform-node--instagram"><i class="ri-instagram-line"></i><span>Instagram</span></span>
+                    <span class="hero-platform-node hero-platform-node--tiktok"><i class="ri-tiktok-line"></i><span>TikTok</span></span>
+                    <span class="hero-platform-node hero-platform-node--youtube"><i class="ri-youtube-line"></i><span>YouTube</span></span>
+                    <span class="hero-platform-node hero-platform-node--telegram"><i class="ri-telegram-line"></i><span>Telegram</span></span>
+                    <span class="hero-platform-node hero-platform-node--spotify"><i class="ri-spotify-line"></i><span>Spotify</span></span>
+                    <span class="hero-platform-node hero-platform-node--x"><i class="ri-twitter-x-line"></i><span>X</span></span>
+                </div>
+                <div class="hero-signal" aria-hidden="true">
+                    <span class="hero-signal-label">REACH <strong>+38%</strong></span>
+                    <div class="hero-signal-chart">
+                        <span class="hero-signal-segment hero-signal-segment--one"></span>
+                        <span class="hero-signal-segment hero-signal-segment--two"></span>
+                        <span class="hero-signal-segment hero-signal-segment--three"></span>
+                        <span class="hero-signal-segment hero-signal-segment--four"></span>
+                        <span class="hero-signal-point hero-signal-point--one"></span>
+                        <span class="hero-signal-point hero-signal-point--two"></span>
+                        <span class="hero-signal-point hero-signal-point--three"></span>
+                        <span class="hero-signal-point hero-signal-point--four"></span>
+                        <span class="hero-signal-point hero-signal-point--five"></span>
+                    </div>
+                    <span class="hero-signal-foot">DISCOVERY / MOMENTUM / GROWTH</span>
+                </div>
+            </div>
+
+            <div class="hero-container">
+                <!-- HERO CONTENT -->
+                <div class="hero-content">
+                    <div class="hero-eyebrow">SOCIAL GROWTH, SIMPLIFIED</div>
+                    <h1 class="hero-title">Grow your <span>social</span> presence.</h1>
+                    <p class="hero-description">Powerful social-media growth services for creators, brands and
+                        businesses.</p>
+                    <div class="hero-actions">
+                        <a href="services.html" class="btn btn-primary">Explore Services</a>
+                        <a href="help.html#order-updates" class="btn btn-outline">Order Updates</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Platform Section -->
+        <section class="platforms">
+            <div class="container">
+                <div class="platform-grid">
+                    <div class="platform-icon"><i class="ri-instagram-fill"></i><span>Instagram</span></div>
+                    <div class="platform-icon"><i class="ri-tiktok-fill"></i><span>TikTok</span></div>
+                    <div class="platform-icon"><i class="ri-youtube-fill"></i><span>YouTube</span></div>
+                    <div class="platform-icon"><i class="ri-facebook-fill"></i><span>Facebook</span></div>
+                    <div class="platform-icon"><i class="ri-twitter-x-fill"></i><span>X</span></div>
+                    <div class="platform-icon"><i class="ri-telegram-fill"></i><span>Telegram</span></div>
+                    <div class="platform-icon"><i class="ri-spotify-fill"></i><span>Spotify</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signature Stacked Services Section (Interactive 3D Card Stack) -->
+        <section class="service-stack-section">
+            <div class="service-stack-container">
+                <div class="service-stack-copy">
+                    <div class="stack-eyebrow">WEEKLY FEATURED</div>
+                    <h2>This week&apos;s platform picks.</h2>
+                    <p>One of the lowest-priced X Drive offers for each platform, curated weekly.</p>
+                    <p class="catalog-update-note" data-featured-catalog-note>Loading weekly picks...</p>
+                    <a href="services.html" class="view-all">Browse all services &rarr;</a>
+                </div>
+
+                <div class="service-stack-interactive" tabindex="0">
+                    <div class="card-stack" id="card-stack">
+                        <!-- Cards injected by service-stack.js -->
+                    </div>
+                    <div class="stack-controls">
+                        <div class="stack-dots" id="stack-dots"></div>
+                        <div class="stack-arrows">
+                            <button class="stack-arrow" id="stack-prev" aria-label="Previous service">&larr;</button>
+                            <button class="stack-arrow" id="stack-next" aria-label="Next service">&rarr;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="home-service-overview" aria-labelledby="home-service-title">
+            <div class="container">
+                <header class="home-service-heading" data-scroll-reveal>
+                    <div class="home-service-heading-copy">
+                        <div class="stack-eyebrow">X DRIVE / THREE PATHS</div>
+                        <h2 id="home-service-title">Your next stage starts somewhere.</h2>
+                    </div>
+                    <p>Build a following. Get found. Put your work out into the world.</p>
+                </header>
+
+                <div class="home-service-grid">
+                    <article class="home-service-preview home-service-preview--platform" data-reveal-number="01" data-scroll-reveal data-reveal-delay="80">
+                        <header class="home-service-card-head">
+                            <span class="home-service-index">01 / PLATFORM</span>
+                            <i class="ri-share-circle-line" aria-hidden="true"></i>
+                        </header>
+                        <div class="home-service-card-copy">
+                            <h3>Make your presence felt.</h3>
+                            <p>Choose platform services, compare clear pricing, and find the right next move for your audience.</p>
+                        </div>
+                        <a href="services.html#platform-services">Explore platform services <i class="ri-arrow-right-up-line" aria-hidden="true"></i></a>
+                    </article>
+                    <article class="home-service-preview home-service-preview--business" data-reveal-number="02" data-scroll-reveal data-reveal-delay="180">
+                        <header class="home-service-card-head">
+                            <span class="home-service-index">02 / BUSINESS</span>
+                            <i class="ri-search-eye-line" aria-hidden="true"></i>
+                        </header>
+                        <div class="home-service-card-copy">
+                            <h3>Be where people are looking.</h3>
+                            <p>Build a clearer Google Search presence and make it easier for nearby customers to find you.</p>
+                        </div>
+                        <a href="services.html#business-presence">Explore business services <i class="ri-arrow-right-up-line" aria-hidden="true"></i></a>
+                    </article>
+                    <article class="home-service-preview home-service-preview--artist" data-reveal-number="03" data-scroll-reveal data-reveal-delay="280">
+                        <header class="home-service-card-head">
+                            <span class="home-service-index">03 / ARTIST</span>
+                            <i class="ri-disc-line" aria-hidden="true"></i>
+                        </header>
+                        <div class="home-service-card-copy">
+                            <h3>Let the work travel.</h3>
+                            <p>Help listeners discover your music with artist pages, release details, and authorized downloads.</p>
+                        </div>
+                        <a href="services.html#artist-services">Explore artist services <i class="ri-arrow-right-up-line" aria-hidden="true"></i></a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer-grid">
+                <div class="site-footer-brand"><a href="index.html" class="logo">X Drive</a><p>Digital presence services for platforms, businesses, and artists.</p><a class="site-footer-contact" href="mailto:xdrivesupport@gmail.com">xdrivesupport@gmail.com</a></div>
+                <nav class="site-footer-column" aria-label="Explore services"><h2>Explore</h2><a href="services.html">All services</a><a href="services.html#platform-services">Platform growth</a><a href="services.html#business-presence">Business search</a><a href="services.html#artist-services">Artist releases</a></nav>
+                <nav class="site-footer-column" aria-label="Workflows"><h2>Workflow</h2><a href="help.html#workflow">How it works</a><a href="help.html#order-updates">Order updates</a></nav>
+                <nav class="site-footer-column" aria-label="Support"><h2>Support</h2><a href="help.html#faqs">FAQs</a><a href="mailto:xdrivesupport@gmail.com">Contact X Drive</a></nav>
+                <nav class="site-footer-column" aria-label="Legal"><h2>Legal</h2><a href="terms.html">Terms of Service (draft)</a><a href="privacy.html">Privacy Policy (draft)</a></nav>
+            </div>
+            <div class="site-footer-bottom"><span>&copy; 2026 X Drive</span><span>Service details and availability may vary.</span></div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script src="js/xdrive-radio.js"></script>
+</body>
+
+</html>

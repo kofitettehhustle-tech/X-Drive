@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storefront Builder - Reseller - X Drive</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components-rebuilt.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: var(--space-xl);
+            height: calc(100vh - 4rem);
+        }
+
+        .builder-controls {
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            padding: var(--space-lg);
+            overflow-y: auto;
+        }
+
+        .builder-preview {
+            padding: var(--space-xl);
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .preview-body {
+            padding: var(--space-xl);
+            text-align: center;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo">BoostSocial Panel</a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="sidebar-link">Dashboard</a>
+                <a href="orders.html" class="sidebar-link">Orders</a>
+                <a href="customers.html" class="sidebar-link">Customers</a>
+                <a href="services.html" class="sidebar-link">Services</a>
+                <a href="pricing.html" class="sidebar-link">Pricing Engine</a>
+                <a href="storefront.html" class="sidebar-link active">Storefront</a>
+                <a href="settings.html" class="sidebar-link">Billing & Settings</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 0; margin-left: 250px;">
+            <div class="builder-layout">
+                <div class="builder-controls">
+                    <h3 style="margin-bottom: var(--space-lg);">Storefront Builder</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Store Name</label>
+                        <input type="text" class="form-control" id="store-name-input" value="BoostSocial">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Primary Color</label>
+                        <input type="color" class="form-control" id="primary-color-input" value="#5e6ad2"
+                            style="padding: 0.25rem; height: 40px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Hero Headline</label>
+                        <input type="text" class="form-control" id="hero-headline-input" value="Grow Your Influence.">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Hero Description</label>
+                        <textarea class="form-control" id="hero-desc-input"
+                            rows="3">The best social media services at the best prices.</textarea>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-top: var(--space-md);">Save
+                        Changes</button>
+                </div>
+
+                <div class="builder-preview">
+                    <div class="preview-frame" id="preview-frame">
+                        <div class="preview-header">
+                            <strong id="preview-logo">BoostSocial</strong>
+                            <div style="display:flex; gap:10px;">
+                                <span style="font-size: 0.875rem;">Services</span>
+                                <span style="font-size: 0.875rem;">Track</span>
+                            </div>
+                        </div>
+                        <div class="preview-body">
+                            <h1 id="preview-headline" style="margin-top: 50px; margin-bottom: 20px;">Grow Your
+                                Influence.</h1>
+                            <p id="preview-desc"
+                                style="color: var(--color-muted); max-width: 400px; margin: 0 auto 30px;">The best
+                                social media services at the best prices.</p>
+                            <button class="btn" id="preview-btn"
+                                style="background-color: #5e6ad2; color: white;">Explore Services</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const nameInput = document.getElementById('store-name-input');
+            const colorInput = document.getElementById('primary-color-input');
+            const headlineInput = document.getElementById('hero-headline-input');
+            const descInput = document.getElementById('hero-desc-input');
+
+            const previewLogo = document.getElementById('preview-logo');
+            const previewHeadline = document.getElementById('preview-headline');
+            const previewDesc = document.getElementById('preview-desc');
+            const previewBtn = document.getElementById('preview-btn');
+
+            nameInput.addEventListener('input', (e) => previewLogo.textContent = e.target.value);
+            headlineInput.addEventListener('input', (e) => previewHeadline.textContent = e.target.value);
+            descInput.addEventListener('input', (e) => previewDesc.textContent = e.target.value);
+            colorInput.addEventListener('input', (e) => previewBtn.style.backgroundColor = e.target.value);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Drive - Services</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components-rebuilt.css">
+    <link rel="stylesheet" href="css/info.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/xdrive-radio.css">
+    <style>
+        .services-header {
+            padding: 120px 0 60px;
+            text-align: center;
+            background-color: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .services-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: var(--space-xl);
+            padding: var(--space-2xl) 0;
+        }
+
+        .filters-panel {
+            position: sticky;
+            top: 100px;
+            align-self: start;
+        }
+        
+        .filter-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .filter-group h4 {
+            margin-bottom: var(--space-sm);
+            color: var(--color-muted);
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .filter-list label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+        }
+
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .service-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg);
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            transition: border-color var(--transition-fast);
+        }
+
+        .service-card:hover {
+            border-color: var(--color-primary-muted);
+        }
+
+        .service-info {
+            flex-grow: 1;
+        }
+
+        .service-platform {
+            color: var(--color-primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .service-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+
+        .service-meta {
+            display: flex;
+            gap: var(--space-md);
+            color: var(--color-muted);
+            font-size: 0.875rem;
+        }
+
+        .service-action {
+            text-align: right;
+            min-width: 150px;
+        }
+
+        .service-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .service-family-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-md);
+            padding: var(--space-2xl) 0 var(--space-xl);
+        }
+
+        .service-family {
+            min-width: 0;
+            padding: var(--space-lg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--color-surface);
+        }
+
+        .service-family-label {
+            color: var(--color-primary);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .service-family h2 {
+            margin: var(--space-sm) 0;
+            font-size: 1.1rem;
+        }
+
+        .service-family p {
+            margin-bottom: var(--space-md);
+            color: var(--color-muted);
+            font-size: 0.9rem;
+        }
+
+        .service-family a {
+            color: var(--color-primary);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .catalog-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: var(--space-lg);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .catalog-heading h2 {
+            font-size: 1.5rem;
+        }
+
+        .catalog-heading p,
+        .catalog-meta,
+        .catalog-results {
+            color: var(--color-muted);
+            font-size: 0.875rem;
+        }
+
+        .catalog-meta {
+            padding-top: var(--space-sm);
+        }
+
+        .catalog-controls {
+            display: grid;
+            gap: var(--space-md);
+        }
+
+        .catalog-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            padding: var(--space-lg) 0;
+        }
+
+        .catalog-pagination button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .service-meta span[data-delivery-estimate] {
+            color: var(--color-primary);
+        }
+
+        @media (max-width: 768px) {
+            .service-family-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .services-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-panel {
+                position: relative;
+                top: 0;
+            }
+
+            .service-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-md);
+            }
+
+            .service-action {
+                text-align: left;
+                width: 100%;
+            }
+
+            .catalog-heading {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: var(--space-xs);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">X Drive</a>
+            
+            <nav class="nav-links">
+                <a href="services.html" style="color: var(--color-primary);">Services</a>
+                <a href="help.html#workflow">How It Works</a>
+                <a href="help.html#order-updates">Order Updates</a>
+                <a href="help.html#faqs">FAQs</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-outline">Log In</a>
+                <a href="signup.html" class="btn btn-primary">Get Started</a>
+                <button class="mobile-menu-btn">☰</button>
+            </div>
+        </div>
+        <div class="delivery-speed-strip" data-delivery-speed role="status" aria-live="polite">
+            <i class="delivery-speed-icon ri-time-line" aria-hidden="true"></i>
+            <strong class="delivery-speed-label">LIVE</strong>
+            <span class="delivery-speed-message" data-delivery-speed-message>X Drive delivery speed estimates will appear here when available.</span>
+            <span class="delivery-speed-updated" data-delivery-speed-updated hidden></span>
+        </div>
+    </header>
+
+    <main>
+        <div class="services-header">
+            <div class="container">
+                <h1>Services for your next stage.</h1>
+                <p class="text-muted">Social media growth, business search presence, and artist discovery.</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <section class="service-family-grid" aria-label="X Drive services">
+                <article class="service-family" id="platform-services">
+                    <span class="service-family-label">Social media</span>
+                    <h2>Platform growth</h2>
+                    <p>Browse available services across social platforms, with weekly featured prices.</p>
+                    <a href="#social-catalog">Explore platform services</a>
+                </article>
+                <article class="service-family" id="business-presence">
+                    <span class="service-family-label">For businesses</span>
+                    <h2>Google search presence</h2>
+                    <p>Business profile setup, local search foundations, and a clearer presence for customers.</p>
+                </article>
+                <article class="service-family" id="artist-services">
+                    <span class="service-family-label">For artists</span>
+                    <h2>Artist discovery and releases</h2>
+                    <p>Search-ready artist and release pages, plus authorized music downloads.</p>
+                </article>
+            </section>
+
+            <section id="social-catalog" aria-labelledby="catalog-title">
+                <header class="catalog-heading">
+                    <div>
+                        <h2 id="catalog-title">Social media services</h2>
+                        <p>Enabled services, sorted from lowest price per 1K.</p>
+                    </div>
+                </header>
+                <p class="catalog-meta" id="catalog-meta">Loading weekly service catalog...</p>
+
+                <div class="services-layout">
+                <aside class="filters-panel">
+                    <div class="catalog-controls">
+                        <div class="form-group">
+                            <label class="form-label" for="service-search">Search</label>
+                            <input type="search" class="form-control" id="service-search" placeholder="Name or platform">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="service-sort">Sort by</label>
+                            <select class="form-control" id="service-sort">
+                                <option value="price-asc">Lowest price</option>
+                                <option value="price-desc">Highest price</option>
+                                <option value="platform">Platform</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <h4>Platform</h4>
+                            <div class="filter-list" id="platform-filters"></div>
+                        </div>
+                    </div>
+                </aside>
+
+                <div>
+                    <p class="catalog-results" id="catalog-results" role="status" aria-live="polite"></p>
+                    <div class="service-list" id="service-list"></div>
+                    <nav class="catalog-pagination" id="catalog-pagination" aria-label="Service catalog pages"></nav>
+                </div>
+            </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer-grid">
+                <div class="site-footer-brand"><a href="index.html" class="logo">X Drive</a><p>Digital presence services for platforms, businesses, and artists.</p><a class="site-footer-contact" href="mailto:xdrivesupport@gmail.com">xdrivesupport@gmail.com</a></div>
+                <nav class="site-footer-column" aria-label="Explore services"><h2>Explore</h2><a href="services.html">All services</a><a href="services.html#platform-services">Platform growth</a><a href="services.html#business-presence">Business search</a><a href="services.html#artist-services">Artist releases</a></nav>
+                <nav class="site-footer-column" aria-label="Workflows"><h2>Workflow</h2><a href="help.html#workflow">How it works</a><a href="help.html#order-updates">Order updates</a></nav>
+                <nav class="site-footer-column" aria-label="Support"><h2>Support</h2><a href="help.html#faqs">FAQs</a><a href="mailto:xdrivesupport@gmail.com">Contact X Drive</a></nav>
+                <nav class="site-footer-column" aria-label="Legal"><h2>Legal</h2><a href="terms.html">Terms of Service (draft)</a><a href="privacy.html">Privacy Policy (draft)</a></nav>
+            </div>
+            <div class="site-footer-bottom"><span>&copy; 2026 X Drive</span><span>Service details and availability may vary.</span></div>
+        </div>
+    </footer>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/catalog.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/xdrive-radio.js"></script>
+</body>
+</html>

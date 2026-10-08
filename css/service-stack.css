@@ -1,0 +1,338 @@
+/* Service Stack Section */
+.service-stack-section {
+    position: relative;
+    padding: 120px 24px;
+    background-color: #050505;
+    color: #fff;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.service-stack-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+}
+
+.service-stack-copy {
+    max-width: 500px;
+}
+
+.stack-eyebrow {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 24px;
+}
+
+.service-stack-copy h2 {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+}
+
+.service-stack-copy p {
+    font-size: 1.125rem;
+    color: #a0a0a0;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.service-stack-copy .view-all {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+.service-stack-copy .view-all:hover {
+    opacity: 0.8;
+}
+
+/* 3D Stack Container */
+.service-stack-interactive {
+    position: relative;
+    height: 480px;
+    width: 100%;
+    perspective: 1200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    touch-action: pan-y; /* Allow vertical scroll, but capture horizontal drag */
+    outline: none;
+}
+
+.card-stack {
+    position: relative;
+    width: min(100%, 680px);
+    height: 400px;
+    transform-style: preserve-3d;
+}
+
+/* Individual Card */
+.service-card {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    right: auto;
+    width: 280px;
+    background-color: #111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), 
+                opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1),
+                box-shadow 0.6s ease;
+    will-change: transform, opacity;
+    cursor: grab;
+    user-select: none;
+}
+
+.service-card:not(.active) {
+    width: 200px;
+}
+
+.service-card.is-entering {
+    animation: featuredCardArrival 760ms cubic-bezier(0.2, 1.35, 0.35, 1) both;
+}
+
+@keyframes featuredCardArrival {
+    0% {
+        transform: translate3d(calc(-50% + var(--arrival-direction, 1) * 58px), 16px, -24px) scale(0.92) rotate(calc(var(--arrival-direction, 1) * 4deg));
+        opacity: 0.35;
+    }
+    64% {
+        transform: translate3d(calc(-50% + var(--arrival-direction, 1) * -7px), -4px, 4px) scale(1.018) rotate(calc(var(--arrival-direction, 1) * -0.6deg));
+        opacity: 1;
+    }
+    82% {
+        transform: translate3d(calc(-50% + var(--arrival-direction, 1) * 3px), 1px, 0) scale(0.997) rotate(0.2deg);
+    }
+    100% {
+        transform: translate3d(-50%, 0, 0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.service-card:active {
+    cursor: grabbing;
+}
+
+.service-card.is-dragging {
+    transition: none; /* Instant follow when dragging */
+}
+
+/* Card Content */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.card-number {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.card-platform {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #fff;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.card-desc {
+    font-size: 0.95rem;
+    color: #888;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.card-pricing {
+    margin-top: auto;
+    margin-bottom: 24px;
+}
+
+.card-price {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.card-meta {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.card-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    background-color: #fff;
+    color: #000;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    pointer-events: none; /* Disabled when not active */
+}
+
+.service-card.active .card-cta {
+    pointer-events: auto; /* Enable when active */
+}
+
+.card-cta:hover {
+    background-color: #e5e5e5;
+}
+
+/* Stack Controls */
+.stack-controls {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stack-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.stack-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.stack-dot.active {
+    background-color: #fff;
+    transform: scale(1.2);
+}
+
+.stack-arrows {
+    display: flex;
+    gap: 12px;
+}
+
+.stack-arrow {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.stack-arrow:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+    .service-stack-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-stack-copy {
+        text-align: center;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .card-stack {
+        width: 100%;
+        height: 380px;
+        overflow: visible;
+    }
+
+    .service-card,
+    .service-card:not(.active) {
+        width: calc(33.333% - 6.667px);
+        padding: 10px 7px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .card-number,
+    .card-platform {
+        font-size: 0.62rem;
+    }
+
+    .card-title {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        line-height: 1.16;
+        overflow-wrap: anywhere;
+    }
+
+    .card-desc,
+    .card-meta {
+        display: none;
+    }
+
+    .card-pricing {
+        margin-bottom: 10px;
+    }
+
+    .card-price {
+        font-size: 0.72rem;
+        overflow-wrap: anywhere;
+    }
+
+    .card-cta {
+        padding: 8px 3px;
+        border-radius: 4px;
+        font-size: 0.62rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .service-card {
+        animation: none !important;
+        transition: none !important;
+    }
+}
