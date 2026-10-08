@@ -24,12 +24,12 @@
         welcomeAudio: 'assets/audio/xdrive-welcome.mp3',
         fallbackAudio: "assets/audio/X-Drive's welcome audio.mp3",
         playlistTracks: [
-            '32Stitches-Uncharted[NCS Release].mp3',
+            '32Stitches-Uncharted [NCS Release].mp3',
             'Aleesia-JPB-High[NCS Release].mp3',
-            'Anna-Yvette-LostSky-Carry-On[NCS Release].mp3',
-            'Crushed-Candy-Oh-My-Gawd[NCS Release].mp3',
+            'Anna-Yvette-Lost-Sky-Carry-On[NCS Release].mp3',
+            'Crushed-Candy-Oh My-Gawd[NCS Release].mp3',
             'Dax-VinDon-Unknown-Brain-Phenomenon[NCS Release].mp3',
-            'DIECXLD-Prod-94-flowers-in-my-head[NCS Release].mp3',
+            'DIECXLD-Prod.94-flowers-in-my-head[NCS Release].mp3',
             'gabriawll-QKReign-Missing-Life[NCS Release].mp3',
             'Goodknight-Freedom[NCS Release].mp3',
             'Henri-Werner-Burned[NCS Release].mp3',
@@ -37,14 +37,14 @@
             'Jimmy-Rivler-Max-Vermeulen-Almost-Weekend-Let-Me-Go[NCS Release].mp3',
             'joegarratt-aya[NCS Release].mp3',
             'JSTN-DMND-ALVYN-SKY-BRI[NCS Release].mp3',
-            'Kyle-Reynolds-Unknown-Brain-I\'m-Sorry-Mom[NCS Release].mp3',
-            'Lennart-Schroot-Josh-Levoid-Wiguez-Get-Out-Here(Lennart Schroot Remix)[NCS Release].mp3',
-            'Nat-James-22-Void-Beats-VERB-Ignite-[NCS Release].mp3',
+            "Kyle-Reynolds-Unknown-Brain-I'm-Sorry-Mom[NCS Release].mp3",
+            'Lennart-Schroot-Josh-Levoid-Wiguez-Get-Out-Here(Lennart Schroot Remix)[NCS Release] (1).mp3',
+            'Nat-James-22-Void-Beats-VERB-Ignite[NCS Release].mp3',
             'Part-Native-Oly-Artificial-Love[NCS Release].mp3',
-            'PHI-NIX-Can\'t-Break-Me-Down[NCS Release].mp3',
+            "PHI-NIX-Can't-Break-Me-Down[NCS Release].mp3",
             'rghvarchive-RedWater-Say-To-You[NCS Release].mp3',
             'RYVN-Avatar[NCS Release].mp3',
-            'Sara Skinner, Lost Sky-Johnning-Janji-Heroes-TonightxDreams-pt-IIMashup[NCS Release].mp3',
+            'Sara-Skinner-Lost-Sky-Johnning-Janji-Heroes-TonightxDreams-pt-IIMashup [NCS Release].mp3',
             'Tinoma-Find-You[NCS Release].mp3',
             'Tom-Wilson-Jagsy-braev-All-My-Love[NCS Release].mp3',
             'Unknown-Brain-Oh-Darling[NCS Release].mp3',
@@ -303,8 +303,8 @@
     function preloadNextTracks(count) {
         for (let i = 1; i <= count && i < CONFIG.playlistTracks.length; i++) {
             const nextIndex = (_currentTrackIndex + i) % CONFIG.playlistTracks.length;
-            const folderPath = 'assets/audio/Playlist%201/';
-            const trackPath = folderPath + encodeURIComponent(CONFIG.playlistTracks[nextIndex]);
+            const folderPath = 'assets/audio/Playlist-1/';
+            const trackPath = folderPath + CONFIG.playlistTracks[nextIndex];
             const preloadAudio = new Audio();
             preloadAudio.preload = 'auto';
             preloadAudio.src = trackPath;
@@ -316,9 +316,8 @@
         if (index < 0 || index >= CONFIG.playlistTracks.length) return;
         
         _currentTrackIndex = index;
-        // Build path with proper encoding for both folder and filename
-        const folderPath = 'assets/audio/Playlist%201/';
-        const trackPath = folderPath + encodeURIComponent(CONFIG.playlistTracks[index]);
+        const folderPath = 'assets/audio/Playlist-1/';
+        const trackPath = folderPath + CONFIG.playlistTracks[index];
         
         if (_playlistAudio) {
             _playlistAudio.src = trackPath;
