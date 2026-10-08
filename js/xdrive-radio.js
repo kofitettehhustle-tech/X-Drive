@@ -107,7 +107,7 @@
     let _isMinimized = false;
     let _isMuted = false;
     let _currentTrackIndex = 0;
-    let _crossfadeDuration = 3000;
+    let _crossfadeDuration = 2000;
 
     /* --- Audio Systems --- */
     let _welcomeAudio = null;
@@ -296,7 +296,20 @@
         });
 
         loadTrack(_currentTrackIndex);
+        preloadNextTracks(3);
         updateDrawerUI();
+    }
+
+    function preloadNextTracks(count) {
+        for (let i = 1; i <= count && i < CONFIG.playlistTracks.length; i++) {
+            const nextIndex = (_currentTrackIndex + i) % CONFIG.playlistTracks.length;
+            const folderPath = 'assets/audio/Playlist%201/';
+            const trackPath = folderPath + encodeURIComponent(CONFIG.playlistTracks[nextIndex]);
+            const preloadAudio = new Audio();
+            preloadAudio.preload = 'auto';
+            preloadAudio.src = trackPath;
+        }
+        console.log('[XDriveRadio] Preloading next ' + count + ' tracks');
     }
 
     function loadTrack(index) {
@@ -333,25 +346,63 @@
 
     function playNext() {
         const nextIndex = (_currentTrackIndex + 1) % CONFIG.playlistTracks.length;
-        loadTrack(nextIndex);
+        
         if (_radioState === STATE.PLAYING) {
-            setTimeout(() => {
-                if (_playlistAudio) {
-                    _playlistAudio.volume = 0;
-                    _playlistAudio.play();
-                    crossfadeIn(_playlistAudio, _crossfadeDuration);
-                }
-            }, 100);
+            const currentAudio = _playlistAudio;
+            crossfadeOut(currentAudio, _crossfadeDuration / 2);
         }
+        
+        loadTrack(nextIndex);
+        
+        if (_radioState === STATE.PLAYING) {
+            const onReady = () => {
+                _playlistAudio.removeEventListener('canplay', onReady);
+                _playlistAudio.volume = 0;
+                _playlistAudio.play().then(() => {
+                    crossfadeIn(_playlistAudio, _crossfadeDuration);
+                }).catch(e => console.error('[XDriveRadio] Next track play error:', e));
+            };
+            
+            if (_playlistAudio.readyState >= 3) {
+                _playlistAudio.volume = 0;
+                _playlistAudio.play().then(() => {
+                    crossfadeIn(_playlistAudio, _crossfadeDuration);
+                }).catch(e => console.error('[XDriveRadio] Next track play error:', e));
+            } else {
+                _playlistAudio.addEventListener('canplay', onReady);
+            }
+        }
+        
+        preloadNextTracks(2);
     }
 
     function playPrevious() {
         const prevIndex = (_currentTrackIndex - 1 + CONFIG.playlistTracks.length) % CONFIG.playlistTracks.length;
-        loadTrack(prevIndex);
+        
         if (_radioState === STATE.PLAYING) {
-            setTimeout(() => {
-                if (_playlistAudio) _playlistAudio.play();
-            }, 100);
+            const currentAudio = _playlistAudio;
+            crossfadeOut(currentAudio, _crossfadeDuration / 2);
+        }
+        
+        loadTrack(prevIndex);
+        
+        if (_radioState === STATE.PLAYING) {
+            const onReady = () => {
+                _playlistAudio.removeEventListener('canplay', onReady);
+                _playlistAudio.volume = 0;
+                _playlistAudio.play().then(() => {
+                    crossfadeIn(_playlistAudio, _crossfadeDuration);
+                }).catch(e => console.error('[XDriveRadio] Previous track play error:', e));
+            };
+            
+            if (_playlistAudio.readyState >= 3) {
+                _playlistAudio.volume = 0;
+                _playlistAudio.play().then(() => {
+                    crossfadeIn(_playlistAudio, _crossfadeDuration);
+                }).catch(e => console.error('[XDriveRadio] Previous track play error:', e));
+            } else {
+                _playlistAudio.addEventListener('canplay', onReady);
+            }
         }
     }
 
@@ -411,9 +462,10 @@
 
     function startWelcomeAudio() {
         initWelcomeAudio();
+        initializePlaylistPlayer();
 
         setRadioState(STATE.WELCOME_PLAYING);
-        console.log('[XDriveRadio] Welcome started');
+        console.log('[XDriveRadio] Welcome started, preloading playlist');
 
         _welcomeAudio.currentTime = 0;
         _welcomeAudio.muted = _isMuted;
@@ -459,7 +511,6 @@
             _playlistAudio.volume = 0;
             _playlistAudio.muted = _isMuted;
 
-            // Wait for audio to be ready before playing
             const attemptPlay = () => {
                 const playPromise = _playlistAudio.play();
 
@@ -484,23 +535,20 @@
                 }
             };
 
-            // Check if audio is ready to play
             if (_playlistAudio.readyState >= 3) {
                 attemptPlay();
             } else {
-                // Wait for canplay event
                 const onCanPlay = () => {
                     _playlistAudio.removeEventListener('canplay', onCanPlay);
                     attemptPlay();
                 };
                 _playlistAudio.addEventListener('canplay', onCanPlay);
                 
-                // Timeout fallback
                 setTimeout(() => {
                     _playlistAudio.removeEventListener('canplay', onCanPlay);
-                    console.log('[XDriveRadio] Playback timeout, attempting anyway');
+                    console.log('[XDriveRadio] Attempting play after brief wait');
                     attemptPlay();
-                }, 5000);
+                }, 1000);
             }
         });
     }
@@ -581,7 +629,6 @@
         SS.set(STORAGE_KEYS.ENABLED, 'true');
 
         if (!_welcomeVoiceCompleted) {
-            initializePlaylistPlayer();
             startWelcomeAudio();
         } else {
             console.log('[XDriveRadio] Attempting music playback');
@@ -648,26 +695,12 @@
         }
     }
 
-    /* --- First User Interaction Hook --- */
-    let _interactionHandled = false;
-
-    function onFirstValidInteraction(e) {
-        if (_interactionHandled) return;
-        _interactionHandled = true;
-
-        ['pointerdown', 'click', 'keydown', 'touchstart'].forEach(evt => {
-            window.removeEventListener(evt, onFirstValidInteraction, { capture: true });
-        });
-
-        console.log('[XDriveRadio] First interaction detected, starting playback');
-        initializePlaylistPlayer();
+    /* --- Auto-initialization on Page Load --- */
+    function attemptAutoplay() {
+        console.log('[XDriveRadio] Attempting autoplay on page load');
+        setRadioState(STATE.MUSIC_LOADING, 'INITIALIZING');
+        
         startWelcomeAudio();
-    }
-
-    function setupInteractionListeners() {
-        ['pointerdown', 'click', 'keydown', 'touchstart'].forEach(evt => {
-            window.addEventListener(evt, onFirstValidInteraction, { capture: true, once: true });
-        });
     }
 
     /* --- Initialization --- */
@@ -681,9 +714,8 @@
             return;
         }
 
-        // Wait for first user interaction (browser autoplay policy requirement)
-        setRadioState(STATE.IDLE, 'READY');
-        setupInteractionListeners();
+        // Auto-start on page load
+        setTimeout(attemptAutoplay, 100);
     }
 
     if (document.readyState === 'loading') {
