@@ -631,12 +631,34 @@
             startWelcomeAudio();
         } else {
             console.log('[XDriveRadio] Attempting music playback');
-            if (_playlistAudio) {
-                _playlistAudio.play();
+            if (!_playlistAudio) initializePlaylistPlayer();
+            if (!_playlistAudio) return;
+
+            // A user gesture is the most reliable place to retry after an
+            // autoplay handoff was blocked. Restore audible volume first:
+            // initialization and the crossfade path both start at volume 0.
+            _playlistAudio.volume = 1;
+            _playlistAudio.muted = _isMuted;
+
+            let playPromise;
+            try {
+                playPromise = _playlistAudio.play();
+            } catch (error) {
+                console.error('[XDriveRadio] Playlist playback failed', error);
+                setRadioState(STATE.BLOCKED, 'TAP TO PLAY');
+                return;
+            }
+
+            Promise.resolve(playPromise).then(() => {
+                _playlistPlayerState = PLAYLIST_STATE.PLAYING;
                 setRadioState(STATE.PLAYING);
                 if (_msgEl) _msgEl.textContent = getTrackName(CONFIG.playlistTracks[_currentTrackIndex]);
                 updatePlayPauseIcon();
-            }
+            }).catch((error) => {
+                console.error('[XDriveRadio] Playlist playback failed', error);
+                _playlistPlayerState = PLAYLIST_STATE.PAUSED;
+                setRadioState(STATE.BLOCKED, 'TAP TO PLAY');
+            });
         }
     }
 
