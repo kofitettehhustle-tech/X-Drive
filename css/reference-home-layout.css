@@ -5,7 +5,7 @@
 }
 
 .home-page .site-header {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     z-index: 100;
@@ -14,9 +14,10 @@
     transform: none;
     border: 0;
     border-radius: 0;
-    background: linear-gradient(180deg, rgba(3, 14, 17, 0.76), transparent);
-    box-shadow: none;
-    backdrop-filter: none;
+    background: rgba(3, 16, 20, 0.88);
+    box-shadow: 0 1px 0 rgba(183, 227, 226, 0.16), 0 10px 32px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 .home-page .site-header .container {
@@ -508,7 +509,10 @@
 @media (max-width: 768px) {
     .home-page .site-header {
         height: 74px;
-        background: linear-gradient(180deg, rgba(3, 14, 17, 0.8), transparent);
+        background: rgba(3, 16, 20, 0.9);
+        box-shadow: 0 1px 0 rgba(183, 227, 226, 0.16), 0 10px 28px rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 
     .home-page .site-header .container {
