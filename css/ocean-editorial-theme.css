@@ -904,3 +904,147 @@ html.xdrive-booting .xdrive-page-loader.is-hiding {
         stroke-dashoffset: 0;
     }
 }
+
+
+/* Mobile polish: make Live a small chip and keep the radio dock legible. */
+@media (max-width: 600px) {
+    .site-header .delivery-speed-strip {
+        top: calc(100% + 8px);
+        right: 4px;
+        left: auto;
+        width: max-content;
+        max-width: calc(100vw - 40px);
+        min-height: 0;
+        justify-content: center;
+        gap: 7px;
+        padding: 7px 11px;
+        border: 1px solid rgba(183, 227, 226, 0.22);
+        border-radius: 999px;
+        background: rgba(5, 30, 36, 0.92);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+        font-size: 0.62rem;
+        line-height: 1;
+    }
+
+    .site-header .delivery-speed-message {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .site-header .delivery-speed-updated {
+        display: none;
+    }
+
+    .site-header .delivery-speed-label {
+        font-size: 0.62rem;
+    }
+
+    .xdrive-radio-wrapper {
+        top: auto;
+        bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        left: 50%;
+        width: min(360px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        transform: translateX(-50%);
+    }
+
+    .xdrive-radio-bar {
+        box-sizing: border-box;
+        width: 100%;
+        height: 48px;
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 0 10px;
+        border-radius: 16px;
+    }
+
+    .xdrive-radio__eq {
+        flex: 0 0 auto;
+    }
+
+    .xdrive-radio__brand {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .xdrive-radio__brand-text {
+        overflow: hidden;
+        font-size: 0.62rem;
+        letter-spacing: 0.035em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .xdrive-radio__msg {
+        display: none;
+    }
+
+    .xdrive-radio__badge {
+        flex: 0 0 auto;
+        gap: 4px;
+        padding: 2px 5px;
+        font-size: 0.54rem;
+    }
+
+    .xdrive-radio__badge-dot {
+        width: 5px;
+        height: 5px;
+    }
+
+    .xdrive-radio__controls {
+        flex: 0 0 auto;
+        gap: 4px;
+    }
+
+    .xdrive-radio__btn {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+    }
+
+    .xdrive-radio__btn svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .xdrive-radio-wrapper {
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+    }
+
+    .xdrive-radio-bar {
+        gap: 5px;
+        padding-inline: 8px;
+    }
+
+    .xdrive-radio__brand-text {
+        font-size: 0.54rem;
+        letter-spacing: 0.02em;
+    }
+
+    .xdrive-radio__badge {
+        gap: 3px;
+        padding-inline: 4px;
+        font-size: 0.48rem;
+    }
+
+    .xdrive-radio__controls {
+        gap: 3px;
+    }
+
+    .xdrive-radio__btn {
+        width: 26px;
+        height: 26px;
+        flex-basis: 26px;
+    }
+}
