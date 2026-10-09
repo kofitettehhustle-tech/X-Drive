@@ -89,7 +89,8 @@
     const STORAGE_KEYS = {
         WELCOME_PLAYED: 'xdrive_radio_welcome_played',
         ENABLED: 'xdrive_radio_enabled',
-        USER_PAUSED: 'xdrive_radio_user_paused'
+        USER_PAUSED: 'xdrive_radio_user_paused',
+        PROGRESS: 'xdrive_radio_progress_v1'
     };
 
     const SS = {
@@ -97,6 +98,72 @@
         set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { } },
         del: (k) => { try { sessionStorage.removeItem(k); } catch (e) { } }
     };
+
+    function readPlaybackProgress() {
+        try {
+            const saved = JSON.parse(SS.get(STORAGE_KEYS.PROGRESS) || 'null');
+            if (!saved || saved.version !== 1 || !['welcome', 'playlist'].includes(saved.phase)) return null;
+            if (!Number.isInteger(saved.trackIndex) || saved.trackIndex < 0 || saved.trackIndex >= CONFIG.playlistTracks.length) return null;
+            return {
+                phase: saved.phase,
+                trackIndex: saved.trackIndex,
+                currentTime: Number.isFinite(saved.currentTime) && saved.currentTime >= 0 ? saved.currentTime : 0,
+                muted: Boolean(saved.muted),
+                userPaused: Boolean(saved.userPaused)
+            };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function persistPlaybackProgress(force) {
+        if (!_playbackPhase) return;
+        const audio = _playbackPhase === 'welcome' ? _welcomeAudio : _playlistAudio;
+        const measuredTime = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+        const currentTime = _resumePosition > measuredTime && measuredTime === 0 ? _resumePosition : measuredTime;
+        const progress = {
+            version: 1,
+            phase: _playbackPhase,
+            trackIndex: _currentTrackIndex,
+            currentTime: Math.max(0, currentTime || 0),
+            muted: _isMuted,
+            userPaused: _userPaused
+        };
+        SS.set(STORAGE_KEYS.PROGRESS, JSON.stringify(progress));
+        if (_userPaused) SS.set(STORAGE_KEYS.USER_PAUSED, 'true');
+        else SS.del(STORAGE_KEYS.USER_PAUSED);
+    }
+
+    function restoreAudioPosition(audio, position) {
+        if (!audio || !Number.isFinite(position) || position < 0) return;
+        const seek = () => {
+            try {
+                if (!Number.isFinite(audio.duration) || position < audio.duration) audio.currentTime = position;
+            } catch (e) { /* Metadata may not be ready yet; the listener below will retry. */ }
+        };
+        if (audio.readyState >= 1) seek();
+        else audio.addEventListener('loadedmetadata', seek, { once: true });
+    }
+
+    function attachProgressTracking(audio, phase) {
+        if (audio._xDriveProgressTracked) return;
+        audio._xDriveProgressTracked = true;
+        audio.addEventListener('timeupdate', () => {
+            if (_playbackPhase === phase && (phase !== 'playlist' || audio === _playlistAudio)) {
+                persistPlaybackProgress(false);
+                if (audio.currentTime > 0) _resumePosition = 0;
+            }
+        });
+        audio.addEventListener('play', () => {
+            if (_playbackPhase === phase && (phase !== 'playlist' || audio === _playlistAudio)) {
+                _userPaused = false;
+                persistPlaybackProgress(true);
+            }
+        });
+        audio.addEventListener('pause', () => {
+            if (_playbackPhase === phase && (phase !== 'playlist' || audio === _playlistAudio)) persistPlaybackProgress(true);
+        });
+    }
 
     /* --- Internal Variables --- */
     let _radioState = STATE.IDLE;
@@ -107,6 +174,8 @@
     let _isMinimized = false;
     let _isMuted = false;
     let _currentTrackIndex = 0;
+    let _playbackPhase = null;
+    let _resumePosition = 0;
     let _crossfadeDuration = 2000;
 
     /* --- Audio Systems --- */
@@ -284,6 +353,7 @@
         _playlistAudio = new Audio();
         _playlistAudio.preload = 'auto';
         _playlistAudio.volume = 0;
+        attachProgressTracking(_playlistAudio, 'playlist');
         _playlistDecks = [_playlistAudio];
 
         _playlistAudio.addEventListener('ended', handleTrackEnded);
@@ -299,6 +369,7 @@
         });
 
         loadTrack(_currentTrackIndex);
+        if (_playbackPhase === 'playlist') restoreAudioPosition(_playlistAudio, _resumePosition);
         preloadNextTracks(3);
         updateDrawerUI();
     }
@@ -311,6 +382,7 @@
         if (!preloadAudio) {
             preloadAudio = new Audio();
             preloadAudio.preload = 'auto';
+            attachProgressTracking(preloadAudio, 'playlist');
             _playlistDecks.push(preloadAudio);
         }
 
@@ -373,15 +445,18 @@
         if (index < 0 || index >= CONFIG.playlistTracks.length || _isTransitioning) return;
         if (_radioState !== STATE.PLAYING || !_playlistAudio) {
             loadTrack(index);
+            _resumePosition = 0;
+            if (_playbackPhase === 'playlist') persistPlaybackProgress(true);
             return;
         }
 
         const outgoing = _playlistAudio;
         let incoming = _playlistDecks.find(deck => deck !== outgoing);
         if (!incoming) {
-            incoming = new Audio();
-            incoming.preload = 'auto';
-            _playlistDecks.push(incoming);
+                incoming = new Audio();
+                incoming.preload = 'auto';
+                attachProgressTracking(incoming, 'playlist');
+                _playlistDecks.push(incoming);
         }
         const trackPath = 'assets/audio/Playlist-1/' + CONFIG.playlistTracks[index];
         _transitionAudio = incoming;
@@ -410,7 +485,9 @@
                 incoming.removeEventListener('error', onLoadError);
                 _playlistAudio = incoming;
                 _currentTrackIndex = index;
+                _resumePosition = 0;
                 updateDrawerUI();
+                persistPlaybackProgress(true);
                 if (_msgEl) _msgEl.textContent = getTrackName(CONFIG.playlistTracks[index]);
                 Promise.all([
                     crossfadeIn(incoming, _crossfadeDuration),
@@ -476,6 +553,7 @@
         _welcomeAudio = new Audio();
         _welcomeAudio.preload = 'auto';
         _welcomeAudio.src = CONFIG.welcomeAudio;
+        attachProgressTracking(_welcomeAudio, 'welcome');
 
         // Fallback for filename difference
         _welcomeAudio.addEventListener('error', function () {
@@ -489,15 +567,19 @@
         _welcomeAudio.addEventListener('ended', handleWelcomeEnded);
     }
 
-    function startWelcomeAudio() {
+    function startWelcomeAudio(resumeAt = _resumePosition) {
         initWelcomeAudio();
         initializePlaylistPlayer();
 
+        _playbackPhase = 'welcome';
+        _welcomeVoiceCompleted = false;
+        _userPaused = false;
         setRadioState(STATE.WELCOME_PLAYING);
         console.log('[XDriveRadio] Welcome started, preloading playlist');
 
-        _welcomeAudio.currentTime = 0;
+        restoreAudioPosition(_welcomeAudio, Number.isFinite(resumeAt) ? resumeAt : 0);
         _welcomeAudio.muted = _isMuted;
+        persistPlaybackProgress(true);
         const playPromise = _welcomeAudio.play();
 
         if (playPromise !== undefined) {
@@ -514,6 +596,10 @@
     async function handleWelcomeEnded() {
         console.log('[XDriveRadio] Welcome ending, starting crossfade');
         _welcomeVoiceCompleted = true;
+        _playbackPhase = 'playlist';
+        _resumePosition = 0;
+        _userPaused = false;
+        persistPlaybackProgress(true);
 
         setRadioState(STATE.MUSIC_LOADING);
         
@@ -550,6 +636,7 @@
                             _isTransitioning = false;
                             setRadioState(STATE.PLAYING);
                             if (_msgEl) _msgEl.textContent = getTrackName(CONFIG.playlistTracks[_currentTrackIndex]);
+                            persistPlaybackProgress(true);
                             console.log('[XDriveRadio] Music playback confirmed');
                             resolve();
                         });
@@ -627,8 +714,41 @@
         console.log('[XDriveRadio] Restarting welcome + playlist cycle');
         _welcomeVoiceCompleted = false;
         _currentTrackIndex = 0;
+        _resumePosition = 0;
+        _playbackPhase = 'welcome';
+        _userPaused = false;
+        SS.del(STORAGE_KEYS.USER_PAUSED);
         loadTrack(0);
-        startWelcomeAudio();
+        startWelcomeAudio(0);
+    }
+
+    function resumeSavedPlaylist() {
+        if (!_playlistAudio) initializePlaylistPlayer();
+        if (!_playlistAudio) return;
+
+        _playbackPhase = 'playlist';
+        _welcomeVoiceCompleted = true;
+        _playlistAudio.volume = 1;
+        _playlistAudio.muted = _isMuted;
+        setRadioState(STATE.MUSIC_LOADING, 'RESUMING');
+
+        let playPromise;
+        try {
+            playPromise = _playlistAudio.play();
+        } catch (error) {
+            setRadioState(STATE.BLOCKED, 'TAP TO PLAY');
+            return;
+        }
+        Promise.resolve(playPromise).then(() => {
+            _playlistPlayerState = PLAYLIST_STATE.PLAYING;
+            _userPaused = false;
+            setRadioState(STATE.PLAYING);
+            updateDrawerUI();
+            persistPlaybackProgress(true);
+        }).catch((error) => {
+            console.info('[XDriveRadio] Resume needs a user gesture:', error);
+            setRadioState(STATE.BLOCKED, 'TAP TO PLAY');
+        });
     }
 
     /* --- Play / Pause Control Logic --- */
@@ -643,6 +763,7 @@
             setRadioState(STATE.PAUSED);
             _playlistPlayerState = PLAYLIST_STATE.PAUSED;
             updatePlayPauseIcon();
+            persistPlaybackProgress(true);
             return;
         }
 
@@ -651,15 +772,20 @@
             SS.set(STORAGE_KEYS.USER_PAUSED, 'true');
             if (_welcomeAudio) _welcomeAudio.pause();
             setRadioState(STATE.PAUSED);
+            persistPlaybackProgress(true);
             return;
         }
 
         _userPaused = false;
         SS.del(STORAGE_KEYS.USER_PAUSED);
         SS.set(STORAGE_KEYS.ENABLED, 'true');
+        persistPlaybackProgress(true);
 
         if (!_welcomeVoiceCompleted) {
-            startWelcomeAudio();
+            const welcomePosition = _welcomeAudio && Number.isFinite(_welcomeAudio.currentTime) && _welcomeAudio.currentTime > 0
+                ? _welcomeAudio.currentTime
+                : _resumePosition;
+            startWelcomeAudio(welcomePosition);
         } else {
             console.log('[XDriveRadio] Attempting music playback');
             if (!_playlistAudio) initializePlaylistPlayer();
@@ -682,9 +808,11 @@
 
             Promise.resolve(playPromise).then(() => {
                 _playlistPlayerState = PLAYLIST_STATE.PLAYING;
+                _playbackPhase = 'playlist';
                 setRadioState(STATE.PLAYING);
                 if (_msgEl) _msgEl.textContent = getTrackName(CONFIG.playlistTracks[_currentTrackIndex]);
                 updatePlayPauseIcon();
+                persistPlaybackProgress(true);
             }).catch((error) => {
                 console.error('[XDriveRadio] Playlist playback failed', error);
                 _playlistPlayerState = PLAYLIST_STATE.PAUSED;
@@ -709,6 +837,11 @@
             _transitionAudio.muted = _isMuted;
         }
 
+        syncMuteButtonIcon();
+        persistPlaybackProgress(true);
+    }
+
+    function syncMuteButtonIcon() {
         const volIcon = document.getElementById('xdrive-radio-icon-vol');
         const muteIcon = document.getElementById('xdrive-radio-icon-muted');
         if (volIcon && muteIcon) {
@@ -761,6 +894,44 @@
     /* --- Initialization --- */
     function init() {
         buildDOM();
+
+        window.addEventListener('pagehide', () => persistPlaybackProgress(true));
+        window.addEventListener('beforeunload', () => persistPlaybackProgress(true));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') persistPlaybackProgress(true);
+        });
+
+        const saved = readPlaybackProgress();
+        if (saved) {
+            _playbackPhase = saved.phase;
+            _currentTrackIndex = saved.trackIndex;
+            _resumePosition = saved.currentTime;
+            _isMuted = saved.muted;
+            syncMuteButtonIcon();
+            _userPaused = saved.userPaused || SS.get(STORAGE_KEYS.USER_PAUSED) === 'true';
+            _welcomeVoiceCompleted = saved.phase === 'playlist';
+
+            if (saved.phase === 'playlist') {
+                initializePlaylistPlayer();
+                if (_userPaused) {
+                    _playlistPlayerState = PLAYLIST_STATE.PAUSED;
+                    setRadioState(STATE.PAUSED);
+                    updatePlayBtnIcons(false);
+                } else {
+                    setTimeout(resumeSavedPlaylist, 100);
+                }
+            } else {
+                initWelcomeAudio();
+                restoreAudioPosition(_welcomeAudio, _resumePosition);
+                if (_userPaused) {
+                    setRadioState(STATE.PAUSED);
+                    updatePlayBtnIcons(false);
+                } else {
+                    setTimeout(() => startWelcomeAudio(saved.currentTime), 100);
+                }
+            }
+            return;
+        }
 
         if (SS.get(STORAGE_KEYS.USER_PAUSED) === 'true') {
             _userPaused = true;
