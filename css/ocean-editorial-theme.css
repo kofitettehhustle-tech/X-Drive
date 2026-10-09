@@ -16,7 +16,6 @@
     --xdr-border: rgba(121, 210, 208, 0.28);
     --xdr-border-hover: rgba(121, 210, 208, 0.58);
     --xdr-neon: #79d2d0;
-    --xdr-neon-glow: rgba(121, 210, 208, 0.34);
 }
 
 body {
@@ -753,11 +752,11 @@ h3,
 
 /* Bring the shared floating radio controls into the ocean-teal palette. */
 .xdrive-radio-bar {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.44), 0 0 18px rgba(121, 210, 208, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: none;
 }
 
 .xdrive-radio-bar:hover {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(121, 210, 208, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: none;
 }
 
 .xdrive-radio-wrapper.is-playing .xdrive-radio__badge,
@@ -765,7 +764,7 @@ h3,
     background: rgba(121, 210, 208, 0.14);
     border-color: rgba(121, 210, 208, 0.4);
     color: #c6eeeb;
-    box-shadow: 0 0 10px rgba(121, 210, 208, 0.16);
+    box-shadow: none;
 }
 
 .xdrive-radio__btn--primary,
@@ -773,7 +772,7 @@ h3,
     border-color: rgba(121, 210, 208, 0.44);
     background: rgba(121, 210, 208, 0.18);
     color: #b8eeeb;
-    box-shadow: 0 0 12px rgba(121, 210, 208, 0.18);
+    box-shadow: none;
 }
 
 .xdrive-radio__btn:hover,
@@ -784,8 +783,8 @@ h3,
 }
 
 @keyframes xdr-tap-glow {
-    0% { border-color: rgba(121, 210, 208, 0.4); box-shadow: 0 0 6px rgba(121, 210, 208, 0.15); }
-    100% { border-color: #79d2d0; box-shadow: 0 0 14px rgba(121, 210, 208, 0.36); }
+    0% { border-color: rgba(121, 210, 208, 0.4); }
+    100% { border-color: #79d2d0; }
 }
 
 
