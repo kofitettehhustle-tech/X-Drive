@@ -3,13 +3,25 @@ const path = require('node:path');
 const express = require('express');
 const dotenv = require('dotenv');
 const { createCatalogStore } = require('./catalog-store');
+const { createOrderStore } = require('./order-store');
+const { MoreThanPanelClient } = require('./morethanpanel-client');
 
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const siteRoot = path.resolve(__dirname, '..');
 const catalogStore = createCatalogStore(
     process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite')
+);
+const orderStore = createOrderStore(
+    process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite')
+);
+const mtpClient = new MoreThanPanelClient(
+    process.env.MORETHANPANEL_API_KEY,
+    'https://morethanpanel.com/api/v2'
 );
 const moreThanPanelEndpoint = 'https://morethanpanel.com/api/v2';
 const weeklyRefreshMs = 7 * 24 * 60 * 60 * 1000;
@@ -141,6 +153,253 @@ app.get('/api/storefront/catalog', (request, response) => {
     });
 });
 
+app.post('/api/storefront/orders', async (request, response) => {
+    try {
+        const { serviceId, link, quantity, customerEmail } = request.body;
+
+        if (!serviceId || !link || !quantity || !customerEmail) {
+            return response.status(400).json({ error: 'Missing required fields: serviceId, link, quantity, customerEmail' });
+        }
+
+        if (!catalogCache) {
+            return response.status(503).json({ error: 'Service catalog is not available' });
+        }
+
+        const service = catalogCache.services.find(s => s.id === serviceId);
+        if (!service) {
+            return response.status(404).json({ error: 'Service not found' });
+        }
+
+        const quantityNum = Number(quantity);
+        if (!Number.isInteger(quantityNum) || quantityNum < (service.minimum || 1)) {
+            return response.status(400).json({ error: `Quantity must be at least ${service.minimum || 1}` });
+        }
+
+        if (service.maximum && quantityNum > service.maximum) {
+            return response.status(400).json({ error: `Quantity cannot exceed ${service.maximum}` });
+        }
+
+        const charge = Number(((quantityNum / 1000) * service.pricePer1000).toFixed(2));
+        const orderId = `xd-order-${crypto.randomBytes(16).toString('hex')}`;
+
+        const order = orderStore.createOrder({
+            id: orderId,
+            customerEmail,
+            serviceId: service.id,
+            serviceTitle: service.title,
+            platform: service.platform,
+            link,
+            quantity: quantityNum,
+            charge,
+            refillable: service.refillable
+        });
+
+        const providerServiceId = catalogCache.services
+            .find(s => s.id === serviceId)
+            ? await getProviderServiceId(serviceId)
+            : null;
+
+        if (!providerServiceId) {
+            return response.status(500).json({ error: 'Unable to process order. Provider service not available.' });
+        }
+
+        try {
+            const providerOrder = await mtpClient.createOrder({
+                service: providerServiceId,
+                link,
+                quantity: quantityNum
+            });
+
+            orderStore.updateOrderWithProviderData(orderId, providerOrder);
+
+            response.status(201).json({
+                success: true,
+                order: orderStore.getOrder(orderId)
+            });
+        } catch (providerError) {
+            console.error('Provider order creation failed:', providerError);
+            return response.status(500).json({ error: 'Failed to place order with provider' });
+        }
+    } catch (error) {
+        console.error('Order creation error:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/api/storefront/orders/:orderId', async (request, response) => {
+    try {
+        const { orderId } = request.params;
+        const order = orderStore.getOrder(orderId);
+
+        if (!order) {
+            return response.status(404).json({ error: 'Order not found' });
+        }
+
+        if (order.providerOrderId) {
+            try {
+                const providerStatus = await mtpClient.getOrderStatus(order.providerOrderId);
+                orderStore.updateOrderStatus(orderId, providerStatus);
+                const updatedOrder = orderStore.getOrder(orderId);
+                response.json({ order: updatedOrder });
+            } catch (providerError) {
+                response.json({ order });
+            }
+        } else {
+            response.json({ order });
+        }
+    } catch (error) {
+        console.error('Order status error:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/api/storefront/orders', async (request, response) => {
+    try {
+        const { email } = request.query;
+
+        if (!email) {
+            return response.status(400).json({ error: 'Email parameter is required' });
+        }
+
+        const orders = orderStore.getOrdersByEmail(email);
+        response.json({ orders });
+    } catch (error) {
+        console.error('Orders retrieval error:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/api/storefront/orders/:orderId/history', (request, response) => {
+    try {
+        const { orderId } = request.params;
+        const order = orderStore.getOrder(orderId);
+
+        if (!order) {
+            return response.status(404).json({ error: 'Order not found' });
+        }
+
+        const history = orderStore.getOrderStatusHistory(orderId);
+        response.json({ history });
+    } catch (error) {
+        console.error('Order history error:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/api/storefront/orders/:orderId/refill', async (request, response) => {
+    try {
+        const { orderId } = request.params;
+        const order = orderStore.getOrder(orderId);
+
+        if (!order) {
+            return response.status(404).json({ error: 'Order not found' });
+        }
+
+        if (!order.refillable) {
+            return response.status(400).json({ error: 'This order is not refillable' });
+        }
+
+        if (!order.providerOrderId) {
+            return response.status(400).json({ error: 'Order has not been processed yet' });
+        }
+
+        const refillResponse = await mtpClient.refillOrder(order.providerOrderId);
+        
+        if (refillResponse.refill) {
+            orderStore.updateRefillStatus(orderId, refillResponse.refill, 'Pending');
+        }
+
+        response.json({
+            success: true,
+            refill: refillResponse
+        });
+    } catch (error) {
+        console.error('Refill request error:', error);
+        response.status(500).json({ error: error.message || 'Internal server error' });
+    }
+});
+
+app.post('/api/storefront/orders/:orderId/cancel', async (request, response) => {
+    try {
+        const { orderId } = request.params;
+        const order = orderStore.getOrder(orderId);
+
+        if (!order) {
+            return response.status(404).json({ error: 'Order not found' });
+        }
+
+        if (!order.providerOrderId) {
+            return response.status(400).json({ error: 'Order has not been processed yet' });
+        }
+
+        if (['Completed', 'Canceled', 'Refunded'].includes(order.status)) {
+            return response.status(400).json({ error: `Cannot cancel order with status: ${order.status}` });
+        }
+
+        const cancelResponse = await mtpClient.cancelOrder(order.providerOrderId);
+        orderStore.markCancelRequested(orderId);
+
+        response.json({
+            success: true,
+            cancel: cancelResponse
+        });
+    } catch (error) {
+        console.error('Cancel request error:', error);
+        response.status(500).json({ error: error.message || 'Internal server error' });
+    }
+});
+
+app.get('/api/admin/balance', async (request, response) => {
+    try {
+        const balance = await mtpClient.getBalance();
+        response.json({ balance });
+    } catch (error) {
+        console.error('Balance check error:', error);
+        response.status(500).json({ error: 'Failed to retrieve balance' });
+    }
+});
+
+app.post('/api/admin/sync-services', async (request, response) => {
+    try {
+        const success = await refreshCatalog();
+        if (success) {
+            response.json({
+                success: true,
+                message: 'Services synchronized successfully',
+                serviceCount: catalogCache?.services?.length || 0
+            });
+        } else {
+            response.status(500).json({ error: 'Failed to sync services' });
+        }
+    } catch (error) {
+        console.error('Service sync error:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+async function getProviderServiceId(publicServiceId) {
+    const db = catalogStore;
+    const catalogData = db.getCatalog();
+    if (!catalogData) return null;
+    
+    const serviceEntry = catalogData.services.find(s => s.id === publicServiceId);
+    if (!serviceEntry) return null;
+    
+    const dbPath = process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite');
+    const { DatabaseSync } = require('node:sqlite');
+    const database = new DatabaseSync(dbPath);
+    
+    try {
+        const stmt = database.prepare('SELECT provider_service_id FROM catalog_services WHERE public_id = ?');
+        const result = stmt.get(publicServiceId);
+        database.close();
+        return result?.provider_service_id || null;
+    } catch {
+        database.close();
+        return null;
+    }
+}
+
 app.use(express.static(siteRoot, {
     dotfiles: 'deny',
     index: 'index.html',
@@ -162,6 +421,7 @@ function shutdown() {
     clearInterval(weeklyRefreshTimer);
     server.close(() => {
         catalogStore.close();
+        orderStore.close();
         process.exit(0);
     });
 }

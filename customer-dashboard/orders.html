@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - X Drive</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .search-box button:hover {
+            background: #5568d3;
+        }
+
+        .orders-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .order-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .order-status {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cfe2ff; color: #084298; }
+        .status-inprogress { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #d1e7dd; color: #0f5132; }
+        .status-partial { background: #fff3cd; color: #856404; }
+        .status-canceled { background: #f8d7da; color: #842029; }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #842029;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+
+        .link-preview {
+            word-break: break-all;
+            color: #667eea;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 My Orders</h1>
+            <p>Track and manage your X Drive orders</p>
+            <div class="search-box">
+                <input type="email" id="emailInput" placeholder="Enter your email address" />
+                <button onclick="loadOrders()">Load My Orders</button>
+            </div>
+        </div>
+
+        <div id="errorContainer"></div>
+        
+        <div class="orders-container">
+            <div id="ordersContent">
+                <div class="empty-state">
+                    <h3>👆 Enter your email above</h3>
+                    <p>Enter your email address to view and track your orders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api-client.js"></script>
+    <script>
+        let currentEmail = null;
+
+        function saveEmail(email) {
+            localStorage.setItem('xdrive_customer_email', email);
+        }
+
+        function loadSavedEmail() {
+            const saved = localStorage.getItem('xdrive_customer_email');
+            if (saved) {
+                document.getElementById('emailInput').value = saved;
+            }
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function getStatusClass(status) {
+            const statusMap = {
+                'Pending': 'status-pending',
+                'Processing': 'status-processing',
+                'In progress': 'status-inprogress',
+                'Completed': 'status-completed',
+                'Partial': 'status-partial',
+                'Canceled': 'status-canceled',
+                'Refunded': 'status-canceled'
+            };
+            return statusMap[status] || 'status-pending';
+        }
+
+        function calculateProgress(order) {
+            if (!order.startCount || order.remains === null) return 0;
+            const delivered = order.quantity - (order.remains || 0);
+            return Math.min(Math.round((delivered / order.quantity) * 100), 100);
+        }
+
+        function formatDate(isoString) {
+            return new Date(isoString).toLocaleString();
+        }
+
+        function renderOrder(order) {
+            const progress = calculateProgress(order);
+            return `
+                <div class="order-card" data-order-id="${order.id}">
+                    <div class="order-header">
+                        <div class="order-id">Order #${order.id}</div>
+                        <div class="order-status ${getStatusClass(order.status)}">${order.status}</div>
+                    </div>
+                    <div class="order-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Platform</span>
+                            <span class="detail-value">${order.platform}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Service</span>
+                            <span class="detail-value">${order.serviceTitle}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Quantity</span>
+                            <span class="detail-value">${order.quantity.toLocaleString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Charge</span>
+                            <span class="detail-value">$${order.charge.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Remains</span>
+                            <span class="detail-value">${order.remains !== null ? order.remains.toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Created</span>
+                            <span class="detail-value">${formatDate(order.createdAt)}</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Link</span>
+                        <span class="link-preview">${order.link}</span>
+                    </div>
+                    ${order.startCount ? `
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px; font-size: 13px; color: #666;">
+                            ${progress}% Complete
+                        </div>
+                    ` : ''}
+                    <div class="order-actions">
+                        <button class="btn btn-primary" onclick="refreshOrder('${order.id}')">
+                            🔄 Refresh Status
+                        </button>
+                        ${order.refillable && order.status === 'Completed' ? `
+                            <button class="btn btn-secondary" onclick="requestRefill('${order.id}')">
+                                ♻️ Request Refill
+                            </button>
+                        ` : ''}
+                        ${!['Completed', 'Canceled', 'Refunded'].includes(order.status) ? `
+                            <button class="btn btn-danger" onclick="cancelOrder('${order.id}')">
+                                ❌ Cancel
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadOrders() {
+            const email = document.getElementById('emailInput').value.trim();
+            if (!email) {
+                showError('Please enter your email address');
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+
+            saveEmail(email);
+            currentEmail = email;
+
+            const ordersContent = document.getElementById('ordersContent');
+            ordersContent.innerHTML = '<div class="loading">⏳ Loading your orders...</div>';
+
+            try {
+                const response = await xdriveAPI.getOrders(email);
+                
+                if (!response.orders || response.orders.length === 0) {
+                    ordersContent.innerHTML = `
+                        <div class="empty-state">
+                            <h3>📭 No orders found</h3>
+                            <p>You don't have any orders yet with this email address</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                ordersContent.innerHTML = response.orders.map(renderOrder).join('');
+            } catch (error) {
+                showError('Failed to load orders: ' + error.message);
+                ordersContent.innerHTML = `
+                    <div class="empty-state">
+                        <h3>❌ Error</h3>
+                        <p>Failed to load orders. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function refreshOrder(orderId) {
+            try {
+                const response = await xdriveAPI.getOrderStatus(orderId);
+                const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
+                if (orderCard && response.order) {
+                    orderCard.outerHTML = renderOrder(response.order);
+                }
+            } catch (error) {
+                showError('Failed to refresh order: ' + error.message);
+            }
+        }
+
+        async function requestRefill(orderId) {
+            if (!confirm('Are you sure you want to request a refill for this order?')) {
+                return;
+            }
+
+            try {
+                await xdriveAPI.requestRefill(orderId);
+                alert('✅ Refill requested successfully!');
+                await refreshOrder(orderId);
+            } catch (error) {
+                showError('Failed to request refill: ' + error.message);
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('Are you sure you want to cancel this order?')) {
+                return;
+            }
+
+            try {
+                await xdriveAPI.cancelOrder(orderId);
+                alert('✅ Order cancellation requested!');
+                await refreshOrder(orderId);
+            } catch (error) {
+                showError('Failed to cancel order: ' + error.message);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedEmail();
+        });
+    </script>
+</body>
+</html>
