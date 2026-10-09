@@ -500,3 +500,290 @@ body {
         transition: none;
     }
 }
+
+
+/* Shared site-wide treatment for public pages and the operations panels. */
+:focus-visible {
+    outline: 2px solid #a5dfdb;
+    outline-offset: 3px;
+}
+
+h1,
+h2,
+h3,
+.info-page-section h2,
+.services-header h1,
+.checkout-form h2,
+.order-summary h3,
+.main-content h2,
+.main-content h3 {
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.info-page-hero {
+    border-bottom-color: rgba(183, 227, 226, 0.16);
+    background:
+        radial-gradient(ellipse at 16% 0%, rgba(36, 123, 132, 0.22), transparent 34rem),
+        linear-gradient(110deg, rgba(7, 37, 43, 0.72), rgba(7, 23, 27, 0.14));
+}
+
+.info-page-kicker,
+.stack-eyebrow {
+    color: #9de0dc;
+    letter-spacing: 0.16em;
+}
+
+.info-page-hero h1,
+.services-header h1 {
+    color: #f1f5f2;
+    font-size: clamp(2.8rem, 6vw, 4.8rem);
+    font-weight: 600;
+    line-height: 0.98;
+    text-transform: uppercase;
+}
+
+.info-page-hero p,
+.info-page-section p,
+.info-page-section li {
+    color: #abc0bd;
+}
+
+.info-page-section h2 {
+    color: #eaf1ee;
+    font-size: 1.55rem;
+    font-weight: 600;
+}
+
+.info-page-content a,
+.site-footer-contact {
+    color: #9de0dc;
+}
+
+.info-draft-note,
+.info-operational-note {
+    border-left-color: #79d2d0;
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(100deg, rgba(22, 76, 82, 0.44), rgba(8, 32, 37, 0.7));
+}
+
+.info-faq-list details {
+    border-bottom-color: rgba(183, 227, 226, 0.16);
+}
+
+.info-faq-list summary {
+    transition: color 160ms ease;
+}
+
+.info-faq-list summary:hover {
+    color: #a5dfdb;
+}
+
+.services-header {
+    border-bottom-color: rgba(183, 227, 226, 0.16) !important;
+    background:
+        radial-gradient(ellipse at 18% 0%, rgba(36, 123, 132, 0.2), transparent 34rem),
+        linear-gradient(115deg, #0b2025, #07171b) !important;
+}
+
+.services-layout {
+    padding-top: clamp(32px, 5vw, 64px) !important;
+}
+
+.filters-panel {
+    padding: 18px;
+    border: 1px solid rgba(183, 227, 226, 0.13);
+    border-radius: 14px;
+    background: rgba(9, 31, 36, 0.72);
+}
+
+.filter-group h4,
+.catalog-heading p,
+.catalog-description {
+    color: #abc0bd;
+}
+
+.filter-list label,
+.service-info p {
+    color: #c0d0cd;
+}
+
+.service-card,
+.service-category-card {
+    border-color: rgba(183, 227, 226, 0.15) !important;
+    border-radius: 14px !important;
+    background: linear-gradient(145deg, rgba(16, 52, 58, 0.72), rgba(8, 28, 33, 0.92)) !important;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.12);
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.service-card:hover,
+.service-category-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 224, 220, 0.48) !important;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+}
+
+.service-platform,
+.service-card a,
+.catalog-pagination a {
+    color: #9de0dc;
+}
+
+.checkout-layout {
+    padding-top: 136px !important;
+}
+
+.checkout-form,
+.order-summary {
+    border-color: rgba(183, 227, 226, 0.15) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(145deg, rgba(14, 45, 51, 0.92), rgba(8, 27, 32, 0.98)) !important;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.2);
+}
+
+.form-control {
+    border-color: rgba(183, 227, 226, 0.2);
+    border-radius: 9px;
+    background-color: rgba(4, 21, 25, 0.8);
+}
+
+.form-control:focus {
+    border-color: #79d2d0;
+    box-shadow: 0 0 0 3px rgba(121, 210, 208, 0.12);
+}
+
+::placeholder {
+    color: rgba(168, 189, 187, 0.65);
+}
+
+.card,
+.stat-card {
+    border-color: rgba(183, 227, 226, 0.15);
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(16, 52, 58, 0.72), rgba(8, 28, 33, 0.92));
+}
+
+.table th,
+.table td {
+    border-bottom-color: rgba(183, 227, 226, 0.12);
+}
+
+.table th {
+    color: #a8c4c1;
+}
+
+.sidebar {
+    border-right-color: rgba(183, 227, 226, 0.14);
+    background: linear-gradient(180deg, #0a2025, #06171b);
+}
+
+.admin-sidebar {
+    background: linear-gradient(180deg, #0a2025, #06171b) !important;
+}
+
+.sidebar-header {
+    border-bottom-color: rgba(183, 227, 226, 0.14);
+}
+
+.sidebar-header .logo {
+    color: #a5dfdb !important;
+}
+
+.sidebar-link {
+    margin: 3px 10px;
+    border-radius: 8px;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    border-left-color: #79d2d0;
+    background: rgba(121, 210, 208, 0.1);
+    color: #edf6f3;
+}
+
+.main-content {
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(23, 83, 90, 0.12), transparent 35rem),
+        #061418;
+}
+
+.site-footer {
+    border-top-color: rgba(183, 227, 226, 0.14);
+    background: #041115;
+}
+
+.site-footer-column a:hover,
+.site-footer-contact:hover {
+    color: #a5dfdb;
+}
+
+@media (max-width: 800px) {
+    .services-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .filters-panel {
+        position: static;
+    }
+
+    .checkout-layout {
+        padding-top: 116px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .info-page-hero {
+        padding-top: 142px;
+    }
+
+    .services-header {
+        padding: 132px 0 38px !important;
+    }
+
+    .filters-panel {
+        padding: 14px;
+    }
+
+    .checkout-layout {
+        padding-top: 112px !important;
+    }
+}
+
+
+/* Bring the shared floating radio controls into the ocean-teal palette. */
+.xdrive-radio-bar {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.44), 0 0 18px rgba(121, 210, 208, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.xdrive-radio-bar:hover {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(121, 210, 208, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.xdrive-radio-wrapper.is-playing .xdrive-radio__badge,
+.xdrive-radio-wrapper.is-tap-to-play .xdrive-radio__badge {
+    background: rgba(121, 210, 208, 0.14);
+    border-color: rgba(121, 210, 208, 0.4);
+    color: #c6eeeb;
+    box-shadow: 0 0 10px rgba(121, 210, 208, 0.16);
+}
+
+.xdrive-radio__btn--primary,
+.xdrive-radio-wrapper.is-tap-to-play .xdrive-radio__btn--primary {
+    border-color: rgba(121, 210, 208, 0.44);
+    background: rgba(121, 210, 208, 0.18);
+    color: #b8eeeb;
+    box-shadow: 0 0 12px rgba(121, 210, 208, 0.18);
+}
+
+.xdrive-radio__btn:hover,
+.xdrive-radio__btn--primary:hover {
+    border-color: #9de0dc;
+    background: rgba(121, 210, 208, 0.28);
+    color: #eaffff;
+}
+
+@keyframes xdr-tap-glow {
+    0% { border-color: rgba(121, 210, 208, 0.4); box-shadow: 0 0 6px rgba(121, 210, 208, 0.15); }
+    100% { border-color: #79d2d0; box-shadow: 0 0 14px rgba(121, 210, 208, 0.36); }
+}
