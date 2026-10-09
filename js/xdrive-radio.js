@@ -113,6 +113,7 @@
     let _welcomeAudio = null;
     let _playlistAudio = null;
     let _transitionAudio = null;
+    let _playlistDecks = [];
     let _isTransitioning = false;
 
     /* --- DOM References --- */
@@ -283,6 +284,7 @@
         _playlistAudio = new Audio();
         _playlistAudio.preload = 'auto';
         _playlistAudio.volume = 0;
+        _playlistDecks = [_playlistAudio];
 
         _playlistAudio.addEventListener('ended', handleTrackEnded);
         _playlistAudio.addEventListener('canplay', function() {
@@ -302,15 +304,26 @@
     }
 
     function preloadNextTracks(count) {
-        for (let i = 1; i <= count && i < CONFIG.playlistTracks.length; i++) {
-            const nextIndex = (_currentTrackIndex + i) % CONFIG.playlistTracks.length;
-            const folderPath = 'assets/audio/Playlist-1/';
-            const trackPath = folderPath + CONFIG.playlistTracks[nextIndex];
-            const preloadAudio = new Audio();
+        if (!_playlistAudio || !CONFIG.playlistTracks.length) return;
+
+        const nextIndex = (_currentTrackIndex + 1) % CONFIG.playlistTracks.length;
+        let preloadAudio = _playlistDecks.find(deck => deck !== _playlistAudio);
+        if (!preloadAudio) {
+            preloadAudio = new Audio();
             preloadAudio.preload = 'auto';
-            preloadAudio.src = trackPath;
+            _playlistDecks.push(preloadAudio);
         }
-        console.log('[XDriveRadio] Preloading next ' + count + ' tracks');
+
+        if (preloadAudio._xDriveTrackIndex !== nextIndex) {
+            preloadAudio.pause();
+            preloadAudio.removeEventListener('ended', handleTrackEnded);
+            preloadAudio.volume = 0;
+            preloadAudio.muted = _isMuted;
+            preloadAudio.src = 'assets/audio/Playlist-1/' + CONFIG.playlistTracks[nextIndex];
+            preloadAudio._xDriveTrackIndex = nextIndex;
+            preloadAudio.load();
+        }
+        console.log('[XDriveRadio] Preloading next track: ' + getTrackName(CONFIG.playlistTracks[nextIndex]));
     }
 
     function loadTrack(index) {
@@ -354,9 +367,8 @@
         transitionToTrack(prevIndex);
     }
 
-    // Use a second audio element for the incoming track. Fading the outgoing
-    // element after replacing its src can otherwise pause the new track when
-    // the old fade timer completes.
+    // Alternate between two persistent decks so outgoing fades cannot pause
+    // the incoming track, and browsers do not need a new audio element per song.
     function transitionToTrack(index) {
         if (index < 0 || index >= CONFIG.playlistTracks.length || _isTransitioning) return;
         if (_radioState !== STATE.PLAYING || !_playlistAudio) {
@@ -365,25 +377,37 @@
         }
 
         const outgoing = _playlistAudio;
-        const incoming = new Audio();
+        let incoming = _playlistDecks.find(deck => deck !== outgoing);
+        if (!incoming) {
+            incoming = new Audio();
+            incoming.preload = 'auto';
+            _playlistDecks.push(incoming);
+        }
         const trackPath = 'assets/audio/Playlist-1/' + CONFIG.playlistTracks[index];
         _transitionAudio = incoming;
         _isTransitioning = true;
-        incoming.preload = 'auto';
+        incoming.pause();
+        incoming.removeEventListener('ended', handleTrackEnded);
         incoming.volume = 0;
         incoming.muted = _isMuted;
         incoming.addEventListener('ended', handleTrackEnded);
-        incoming.addEventListener('error', function () {
+        const onLoadError = function () {
             console.error('[XDriveRadio] Could not load track:', trackPath);
             _transitionAudio = null;
             _isTransitioning = false;
             setRadioState(STATE.ERROR);
-        }, { once: true });
-        incoming.src = trackPath;
+        };
+        incoming.addEventListener('error', onLoadError, { once: true });
+        if (incoming._xDriveTrackIndex !== index || incoming.error) {
+            incoming.src = trackPath;
+            incoming._xDriveTrackIndex = index;
+            incoming.load();
+        }
 
         const beginTransition = () => {
             incoming.removeEventListener('canplay', beginTransition);
             incoming.play().then(() => {
+                incoming.removeEventListener('error', onLoadError);
                 _playlistAudio = incoming;
                 _currentTrackIndex = index;
                 updateDrawerUI();
