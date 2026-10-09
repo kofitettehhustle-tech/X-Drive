@@ -201,6 +201,51 @@
             color: var(--color-primary);
         }
 
+        .refillable-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: #d1f4e0;
+            color: #0f5132;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .service-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--color-primary-muted);
+            color: var(--color-primary);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: var(--space-xs);
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .live-indicator::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         @media (max-width: 768px) {
             .service-family-grid {
                 grid-template-columns: 1fr;
@@ -276,6 +321,10 @@
             <div class="container">
                 <h1>Services for your next stage.</h1>
                 <p class="text-muted">Social media growth, business search presence, and artist discovery.</p>
+                <p class="text-muted" style="margin-top: var(--space-md);">
+                    <strong id="total-services-count">3,285+ services</strong> from Morethanpanel with 50% markup applied · 
+                    <a href="customer-dashboard/orders.html" style="color: var(--color-primary);">Track Your Orders</a>
+                </p>
             </div>
         </div>
 
@@ -305,6 +354,7 @@
                         <h2 id="catalog-title">Social media services</h2>
                         <p>Enabled services, sorted from lowest price per 1K.</p>
                     </div>
+                    <div id="catalog-stats" style="text-align: right; font-size: 0.875rem; color: var(--color-muted);"></div>
                 </header>
                 <p class="catalog-meta" id="catalog-meta">Loading weekly service catalog...</p>
 
@@ -322,6 +372,15 @@
                                 <option value="price-desc">Highest price</option>
                                 <option value="platform">Platform</option>
                             </select>
+                        </div>
+                        <div class="filter-group">
+                            <h4>Features</h4>
+                            <div class="filter-list">
+                                <label>
+                                    <input type="checkbox" id="refillable-filter" value="refillable">
+                                    <span>♻️ Refillable only</span>
+                                </label>
+                            </div>
                         </div>
                         <div class="filter-group">
                             <h4>Platform</h4>

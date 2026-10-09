@@ -6,8 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultsLabel = document.getElementById('catalog-results');
     const pagination = document.getElementById('catalog-pagination');
     const catalogMeta = document.getElementById('catalog-meta');
+    const refillableFilter = document.getElementById('refillable-filter');
     const pageSize = 30;
     const selectedPlatforms = new Set();
+    let showRefillableOnly = false;
     let currentPage = 1;
 
     if (!window.XDriveCatalog || !serviceList) return;
@@ -17,13 +19,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     const requestedService = new URLSearchParams(window.location.search).get('service');
     const selectedService = services.find((service) => service.id === requestedService);
 
+    const totalCountElement = document.getElementById('total-services-count');
+    if (totalCountElement) {
+        totalCountElement.innerHTML = `<span class="live-indicator">LIVE</span> ${services.length.toLocaleString()} services`;
+    }
+
+    const catalogStats = document.getElementById('catalog-stats');
+    if (catalogStats) {
+        const platforms = new Set(services.map(s => s.platform));
+        const refillableCount = services.filter(s => s.refillable).length;
+        catalogStats.innerHTML = `
+            <div><strong>${platforms.size}</strong> platforms</div>
+            <div><strong>${refillableCount.toLocaleString()}</strong> refillable services</div>
+        `;
+    }
+
     if (catalog.source === 'morethanpanel') {
         const updatedAt = window.XDriveCatalog.formatUpdatedAt(catalog.updatedAt);
         catalogMeta.textContent = updatedAt
-            ? `X Drive catalog · refreshed ${updatedAt} · updated weekly`
-            : 'X Drive catalog · updated weekly';
+            ? `✓ Morethanpanel catalog · refreshed ${updatedAt} · updated weekly · 50% markup applied`
+            : '✓ Morethanpanel catalog · updated weekly · 50% markup applied';
     } else {
-        catalogMeta.textContent = `X Drive preview · ${services.length} sample offers · weekly catalog sync is not connected.`;
+        catalogMeta.textContent = `Preview mode · ${services.length} sample offers · Morethanpanel sync not connected`;
     }
 
     if (requestedService && selectedService) {
@@ -54,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const query = searchInput.value.trim().toLowerCase();
         const filtered = services.filter((service) => {
             if (selectedPlatforms.size && !selectedPlatforms.has(service.platform)) return false;
+            if (showRefillableOnly && !service.refillable) return false;
             if (query && ![
                 service.platform,
                 service.title,
@@ -107,7 +125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (service.refillable === true) {
             const refill = document.createElement('span');
-            refill.textContent = 'Refill available';
+            refill.className = 'refillable-badge';
+            refill.innerHTML = '♻️ Refill available';
             meta.appendChild(refill);
         }
 
@@ -182,6 +201,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPage = 1;
         render();
     });
+    if (refillableFilter) {
+        refillableFilter.addEventListener('change', () => {
+            showRefillableOnly = refillableFilter.checked;
+            currentPage = 1;
+            render();
+        });
+    }
 
     render();
 });
