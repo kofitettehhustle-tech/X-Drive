@@ -829,3 +829,187 @@ h3,
         animation: none;
     }
 }
+
+
+/* Site-entry screen: reveal the page only after the X Drive signal animation. */
+.xdrive-page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    overflow: hidden;
+    color: #effaf9;
+    background:
+        radial-gradient(circle at 50% 43%, rgba(47, 121, 127, 0.22), transparent 30%),
+        radial-gradient(circle at 50% 105%, rgba(10, 73, 79, 0.34), transparent 44%),
+        #071b20;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 420ms ease, visibility 420ms ease;
+}
+
+html.xdrive-booting {
+    overflow: hidden;
+}
+
+html.xdrive-booting body > :not(.xdrive-page-loader) {
+    visibility: hidden;
+}
+
+html.xdrive-booting .xdrive-page-loader {
+    display: grid;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+html.xdrive-booting .xdrive-page-loader.is-hiding {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.xdrive-loader-content {
+    display: flex;
+    width: min(100%, 320px);
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.xdrive-loader-emblem {
+    position: relative;
+    display: grid;
+    width: 106px;
+    height: 106px;
+    margin-bottom: 30px;
+    place-items: center;
+}
+
+.xdrive-loader-orbit {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(165, 223, 219, 0.24);
+    border-top-color: rgba(165, 223, 219, 0.9);
+    border-radius: 50%;
+    animation: xdrive-loader-orbit 1.8s linear infinite;
+}
+
+.xdrive-loader-orbit::after {
+    position: absolute;
+    top: 13px;
+    left: 15px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #a5dfdb;
+    box-shadow: 0 0 12px rgba(165, 223, 219, 0.85);
+    content: "";
+}
+
+.xdrive-loader-orbit--inner {
+    inset: 11px;
+    border-color: rgba(165, 223, 219, 0.12);
+    border-right-color: rgba(165, 223, 219, 0.56);
+    animation-duration: 2.7s;
+    animation-direction: reverse;
+}
+
+.xdrive-loader-orbit--inner::after {
+    top: 9px;
+    left: 10px;
+    width: 3px;
+    height: 3px;
+    opacity: 0.7;
+}
+
+.xdrive-loader-symbol {
+    position: relative;
+    z-index: 1;
+    width: 50px;
+    height: 50px;
+    overflow: visible;
+    color: #a5dfdb;
+    filter: drop-shadow(0 0 14px rgba(121, 210, 208, 0.34));
+    animation: xdrive-loader-arrive 900ms cubic-bezier(0.16, 1, 0.3, 1) both,
+               xdrive-loader-breathe 2.6s ease-in-out 900ms infinite alternate;
+}
+
+.xdrive-loader-wordmark {
+    margin: 0;
+    color: #f1f8f7;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.xdrive-loader-wordmark span {
+    color: #a5dfdb;
+}
+
+.xdrive-loader-caption {
+    margin: 13px 0 0;
+    color: rgba(217, 239, 237, 0.7);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.21em;
+    text-transform: uppercase;
+}
+
+.xdrive-loader-wave {
+    display: flex;
+    height: 19px;
+    align-items: center;
+    gap: 5px;
+    margin-top: 27px;
+}
+
+.xdrive-loader-wave span {
+    width: 3px;
+    height: 100%;
+    border-radius: 4px;
+    background: #79d2d0;
+    box-shadow: 0 0 8px rgba(121, 210, 208, 0.22);
+    transform: scaleY(0.22);
+    transform-origin: center;
+    animation: xdrive-loader-wave 780ms ease-in-out infinite alternate;
+}
+
+.xdrive-loader-wave span:nth-child(2) { animation-delay: 110ms; }
+.xdrive-loader-wave span:nth-child(3) { animation-delay: 220ms; }
+.xdrive-loader-wave span:nth-child(4) { animation-delay: 330ms; }
+.xdrive-loader-wave span:nth-child(5) { animation-delay: 440ms; }
+
+@keyframes xdrive-loader-orbit {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes xdrive-loader-arrive {
+    0% { opacity: 0; transform: scale(0.18) rotate(-100deg); }
+    70% { opacity: 1; transform: scale(1.13) rotate(9deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes xdrive-loader-breathe {
+    from { filter: drop-shadow(0 0 8px rgba(121, 210, 208, 0.2)); }
+    to { filter: drop-shadow(0 0 20px rgba(121, 210, 208, 0.68)); }
+}
+
+@keyframes xdrive-loader-wave {
+    from { transform: scaleY(0.22); opacity: 0.52; }
+    to { transform: scaleY(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .xdrive-page-loader { transition: none; }
+    .xdrive-loader-orbit,
+    .xdrive-loader-symbol,
+    .xdrive-loader-wave span { animation: none; }
+    .xdrive-loader-symbol { opacity: 1; transform: none; }
+}

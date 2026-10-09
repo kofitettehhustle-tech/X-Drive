@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+        window.__xDriveLoaderStartedAt = performance.now();
+        document.documentElement.classList.add('xdrive-booting');
+        window.setTimeout(() => document.documentElement.classList.remove('xdrive-booting'), 7000);
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - X Drive</title>
     <link rel="stylesheet" href="css/global.css">
@@ -63,8 +68,23 @@
     <link rel="stylesheet" href="css/ocean-editorial-theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="assets/images/xdrive-favicon.svg">
+    <script src="js/page-loader.js" defer></script>
 </head>
 <body class="xdrive-checkout-page">
+    <div id="xdrive-page-loader" class="xdrive-page-loader" role="status" aria-live="polite" aria-label="Loading X Drive">
+        <div class="xdrive-loader-content">
+            <div class="xdrive-loader-emblem" aria-hidden="true">
+                <span class="xdrive-loader-orbit"></span>
+                <span class="xdrive-loader-orbit xdrive-loader-orbit--inner"></span>
+                <svg class="xdrive-loader-symbol" viewBox="0 0 64 64" focusable="false">
+                    <path d="M19 17h9l4 7 4-7h9L37 32l9 15h-9l-5-8-5 8h-9l10-15z" fill="currentColor"/>
+                </svg>
+            </div>
+            <p class="xdrive-loader-wordmark"><span>X</span> Drive</p>
+            <p class="xdrive-loader-caption">Tuning the signal</p>
+            <div class="xdrive-loader-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+    </div>
 
     <header class="site-header">
         <div class="container">
