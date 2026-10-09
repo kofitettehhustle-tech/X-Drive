@@ -23,6 +23,7 @@
     <script src="js/mock-data.js" defer></script>
     <script src="js/catalog.js" defer></script>
     <script src="js/hero.js" defer></script>
+    <script src="js/home-hero-carousel.js" defer></script>
     <script src="js/service-stack.js" defer></script>
     <style>
         /* Platform Section */
@@ -113,11 +114,12 @@
 
     </style>
     <link rel="stylesheet" href="css/ocean-editorial-theme.css">
+    <link rel="stylesheet" href="css/reference-home-layout.css">
     <link rel="icon" type="image/svg+xml" href="assets/images/xdrive-favicon.svg">
     <script src="js/page-loader.js" defer></script>
 </head>
 
-<body>
+<body class="home-page">
         <div id="xdrive-page-loader" class="xdrive-page-loader" role="status" aria-live="polite" aria-label="Loading X Drive">
         <svg class="xdrive-loader-mark" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
             <path class="xdrive-loader-stroke" d="M27 27 L73 73" pathLength="100"/>
@@ -151,50 +153,40 @@
     </header>
 
     <main>
-        <!-- Hero Section -->
-        <section class="x-drive-hero">
-            <div class="hero-ascii-bg" id="asciiVisual" aria-hidden="true">
-                <div class="hero-grid"></div>
-                <div class="hero-network">
-                    <span class="hero-connection hero-connection--one"></span>
-                    <span class="hero-connection hero-connection--two"></span>
-                    <span class="hero-connection hero-connection--three"></span>
-                    <span class="hero-connection hero-connection--four"></span>
-                    <span class="hero-platform-node hero-platform-node--instagram"><i class="ri-instagram-line"></i><span>Instagram</span></span>
-                    <span class="hero-platform-node hero-platform-node--tiktok"><i class="ri-tiktok-line"></i><span>TikTok</span></span>
-                    <span class="hero-platform-node hero-platform-node--youtube"><i class="ri-youtube-line"></i><span>YouTube</span></span>
-                    <span class="hero-platform-node hero-platform-node--telegram"><i class="ri-telegram-line"></i><span>Telegram</span></span>
-                    <span class="hero-platform-node hero-platform-node--spotify"><i class="ri-spotify-line"></i><span>Spotify</span></span>
-                    <span class="hero-platform-node hero-platform-node--x"><i class="ri-twitter-x-line"></i><span>X</span></span>
-                </div>
-                <div class="hero-signal" aria-hidden="true">
-                    <span class="hero-signal-label">REACH <strong>+38%</strong></span>
-                    <div class="hero-signal-chart">
-                        <span class="hero-signal-segment hero-signal-segment--one"></span>
-                        <span class="hero-signal-segment hero-signal-segment--two"></span>
-                        <span class="hero-signal-segment hero-signal-segment--three"></span>
-                        <span class="hero-signal-segment hero-signal-segment--four"></span>
-                        <span class="hero-signal-point hero-signal-point--one"></span>
-                        <span class="hero-signal-point hero-signal-point--two"></span>
-                        <span class="hero-signal-point hero-signal-point--three"></span>
-                        <span class="hero-signal-point hero-signal-point--four"></span>
-                        <span class="hero-signal-point hero-signal-point--five"></span>
-                    </div>
-                    <span class="hero-signal-foot">DISCOVERY / MOMENTUM / GROWTH</span>
-                </div>
+        <!-- Full-bleed feature carousel, adapted from the supplied editorial layout. -->
+        <section class="x-drive-hero" data-home-hero data-slide="1" aria-roledescription="carousel" aria-label="Featured X Drive services">
+            <div class="hero-seam-mark" aria-hidden="true">
+                <svg viewBox="0 0 100 100" focusable="false">
+                    <path d="M24 24 L76 76" />
+                    <path d="M76 24 L24 76" />
+                </svg>
             </div>
 
             <div class="hero-container">
-                <!-- HERO CONTENT -->
-                <div class="hero-content">
-                    <div class="hero-eyebrow">SOCIAL GROWTH, SIMPLIFIED</div>
-                    <h1 class="hero-title"><span>Grow your</span><span class="hero-title-accent">social</span><span>presence.</span></h1>
-                    <p class="hero-description">Powerful social-media growth services for creators, brands and
-                        businesses.</p>
-                    <div class="hero-actions">
-                        <a href="services.html" class="btn btn-primary">Explore Services</a>
-                        <a href="help.html#order-updates" class="btn btn-outline">Order Updates</a>
+                <div class="hero-content" data-hero-content>
+                    <p class="hero-eyebrow" data-hero-eyebrow>SOCIAL GROWTH, SIMPLIFIED</p>
+                    <h1 id="home-hero-title" class="hero-title" data-hero-title aria-live="polite" aria-atomic="true">
+                        <span data-hero-title-line>GROW YOUR</span>
+                        <span class="hero-title-accent" data-hero-title-line>SOCIAL PRESENCE.</span>
+                    </h1>
+                    <div class="hero-detail">
+                        <p class="hero-description" data-hero-description>Powerful social-media growth services for creators, brands and businesses.</p>
+                        <a class="hero-cta" data-hero-cta href="services.html">
+                            <span data-hero-cta-label>Learn more</span>
+                            <i class="ri-arrow-right-line" aria-hidden="true"></i>
+                        </a>
                     </div>
+                </div>
+
+                <nav class="hero-carousel-indicators" data-hero-indicators aria-label="Choose a featured service">
+                    <button class="hero-carousel-indicator is-active" type="button" data-hero-slide-to="0" aria-label="Show slide 1: Social growth" aria-current="true"><span></span></button>
+                    <button class="hero-carousel-indicator" type="button" data-hero-slide-to="1" aria-label="Show slide 2: Business presence" aria-current="false"><span></span></button>
+                    <button class="hero-carousel-indicator" type="button" data-hero-slide-to="2" aria-label="Show slide 3: Artist services" aria-current="false"><span></span></button>
+                </nav>
+
+                <div class="hero-carousel-arrows" role="group" aria-label="Featured service navigation">
+                    <button type="button" data-hero-previous aria-label="Previous feature"><i class="ri-arrow-left-line" aria-hidden="true"></i></button>
+                    <button type="button" data-hero-next aria-label="Next feature"><i class="ri-arrow-right-line" aria-hidden="true"></i></button>
                 </div>
             </div>
         </section>
