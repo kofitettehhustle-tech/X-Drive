@@ -1048,3 +1048,212 @@ html.xdrive-booting .xdrive-page-loader.is-hiding {
         flex-basis: 26px;
     }
 }
+
+
+/* Split-screen landing composition inspired by the supplied editorial reference. */
+@media (min-width: 701px) {
+    .x-drive-hero {
+        background-color: #07171b;
+        background-image:
+            linear-gradient(135deg, rgba(5, 26, 31, 0.08), rgba(4, 17, 22, 0.28)),
+            url("../assets/images/xdrive-ocean-hero.jpg");
+        background-size: 55% 100%, 55% 100%;
+        background-position: right center, right center;
+        background-repeat: no-repeat;
+    }
+
+    .x-drive-hero::before {
+        position: absolute;
+        z-index: 1;
+        inset: 0 auto 0 0;
+        width: 48%;
+        border-right: 1px solid rgba(183, 227, 226, 0.24);
+        background: linear-gradient(145deg, #07171b 0%, #0a242a 72%, #0b2930 100%);
+        box-shadow: 20px 0 54px rgba(0, 0, 0, 0.2);
+        content: "";
+        pointer-events: none;
+    }
+
+    .hero-container {
+        display: block;
+        width: 100%;
+        max-width: none;
+        min-height: inherit;
+        padding: 0;
+    }
+
+    .hero-content {
+        box-sizing: border-box;
+        display: flex;
+        width: 54%;
+        max-width: none;
+        height: auto;
+        min-height: inherit;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: clamp(18px, 2.7vh, 28px);
+        padding: clamp(126px, 15vh, 174px) clamp(28px, 5.2vw, 76px) clamp(48px, 7vh, 72px);
+        text-align: left;
+    }
+
+    .hero-eyebrow {
+        margin: 0;
+        color: #c5e5e2;
+    }
+
+    .hero-title {
+        display: flex;
+        max-width: 100%;
+        flex-direction: column;
+        align-self: auto;
+        justify-self: auto;
+        margin: 0;
+        font-size: clamp(3.8rem, 7vw, 7rem);
+        line-height: 0.84;
+        letter-spacing: -0.045em;
+        text-align: left;
+    }
+
+    .hero-description {
+        max-width: 370px;
+        margin: 0;
+        font-size: clamp(1rem, 1.22vw, 1.14rem);
+    }
+
+    .hero-actions {
+        align-self: flex-start;
+        margin: 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .x-drive-hero {
+        background-color: #07171b;
+        background-image: none;
+    }
+
+    .x-drive-hero::before {
+        position: absolute;
+        z-index: 1;
+        content: "";
+        pointer-events: none;
+        inset: 62% 0 0;
+        width: auto;
+        border-top: 1px solid rgba(183, 227, 226, 0.24);
+        border-right: 0;
+        background-image:
+            linear-gradient(180deg, rgba(5, 26, 31, 0.08), rgba(4, 17, 22, 0.12)),
+            url("../assets/images/xdrive-ocean-hero.jpg");
+        background-size: cover;
+        background-position: center 48%;
+        background-repeat: no-repeat;
+        box-shadow: 0 -22px 54px rgba(0, 0, 0, 0.22);
+    }
+
+    .hero-container {
+        display: block;
+        width: 100%;
+        max-width: none;
+        min-height: inherit;
+        padding: 0;
+    }
+
+    .hero-content {
+        box-sizing: border-box;
+        display: flex;
+        width: 100%;
+        height: auto;
+        min-height: inherit;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 16px;
+        padding: clamp(106px, 15vh, 134px) 24px 26px;
+        text-align: left;
+    }
+
+    .hero-eyebrow {
+        margin: 0;
+        font-size: 0.64rem;
+        line-height: 1.5;
+    }
+
+    .hero-title {
+        display: flex;
+        max-width: 100%;
+        flex-direction: column;
+        align-self: auto;
+        justify-self: auto;
+        margin: 0;
+        font-size: clamp(3.3rem, 15.5vw, 5.4rem);
+        line-height: 0.83;
+        text-align: left;
+        text-shadow: 0 5px 26px rgba(0, 12, 17, 0.3);
+    }
+
+    .hero-description {
+        max-width: 320px;
+        margin: 0;
+        font-size: 0.94rem;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        align-self: flex-start;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 8px;
+        margin: 0;
+    }
+
+    .hero-actions .btn {
+        min-height: 42px;
+        padding-inline: 0.92rem;
+        font-size: 0.68rem;
+    }
+}
+
+
+@media (max-width: 700px) {
+    .x-drive-hero::before {
+        inset: 64% 0 0;
+    }
+}
+
+@media (max-width: 340px) {
+    .x-drive-hero::before {
+        inset: 72% 0 0;
+    }
+}
+
+
+@media (min-width: 701px) and (max-width: 900px) {
+    .x-drive-hero {
+        background-size: 48% 100%, 48% 100%;
+    }
+
+    .x-drive-hero::before {
+        width: 54%;
+    }
+
+    .hero-content {
+        width: 60%;
+        gap: clamp(16px, 2.4vh, 24px);
+        padding-inline: clamp(24px, 4.8vw, 44px);
+    }
+
+    .hero-title {
+        font-size: clamp(3.4rem, 6.2vw, 4.8rem);
+    }
+
+    .hero-actions {
+        gap: 8px;
+    }
+
+    .hero-actions .btn {
+        min-height: 42px;
+        padding-inline: 0.9rem;
+        font-size: 0.68rem;
+    }
+}
