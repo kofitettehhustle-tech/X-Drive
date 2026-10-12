@@ -277,10 +277,22 @@
     </div>
 
     <script src="../js/api-config.js"></script>
+    <script src="../js/catalog.js"></script>
     <script src="../js/api-client.js"></script>
     <script>
         let allServices = [];
         let currentSort = { field: 'platform', direction: 'asc' };
+
+        function displayCatalogText(value) {
+            const escaped = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return window.XDriveCatalog.brandText(value).replace(/[&<>"']/g, (character) => escaped[character]);
+        }
 
         async function loadServices() {
             try {
@@ -392,9 +404,9 @@
 
             tbody.innerHTML = services.map(service => `
                 <tr>
-                    <td><span class="platform-badge">${service.platform}</span></td>
-                    <td>${service.title}</td>
-                    <td>${service.category}</td>
+                    <td><span class="platform-badge">${displayCatalogText(service.platform)}</span></td>
+                    <td>${displayCatalogText(service.title)}</td>
+                    <td>${displayCatalogText(service.category)}</td>
                     <td class="price">$${service.pricePer1000.toFixed(4)}</td>
                     <td>${service.minimum !== null ? service.minimum.toLocaleString() : 'N/A'}</td>
                     <td>${service.maximum !== null ? service.maximum.toLocaleString() : 'N/A'}</td>
@@ -404,7 +416,7 @@
         }
 
         async function syncServices() {
-            if (!confirm('This will sync all services from Morethanpanel. Continue?')) {
+            if (!confirm('This will sync the X-Drive service catalog. Continue?')) {
                 return;
             }
 

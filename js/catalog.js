@@ -2,6 +2,12 @@
     const apiBaseUrl = String(window.XDRIVE_API_BASE_URL || '').replace(/\/+$/, '');
     const catalogUrl = `${apiBaseUrl}/api/storefront/catalog`;
 
+    function brandCatalogText(value) {
+        return String(value || '')
+            .replace(/\bMore\s*Than\s*P(?:a)?n(?:n)?el\b/gi, 'X-Drive')
+            .replace(/\bMTP\b/gi, 'X-Drive');
+    }
+
     function normalizeService(service) {
         const pricePer1000 = Number(service.pricePer1000);
         const minimum = Number(service.minimum);
@@ -17,10 +23,10 @@
         return {
             id,
             platform,
-            title,
-            name: title,
-            category: String(service.category || service.type || 'Social media').trim(),
-            description: String(service.description || '').trim(),
+            title: brandCatalogText(title),
+            name: brandCatalogText(title),
+            category: brandCatalogText(String(service.category || service.type || 'Social media').trim()),
+            description: brandCatalogText(String(service.description || '').trim()),
             pricePer1000,
             minimum: Number.isFinite(minimum) ? minimum : null,
             maximum: Number.isFinite(maximum) ? maximum : null,
@@ -113,6 +119,7 @@
     window.XDriveCatalog = {
         load,
         getFeaturedServices,
-        formatUpdatedAt
+        formatUpdatedAt,
+        brandText: brandCatalogText
     };
 })();

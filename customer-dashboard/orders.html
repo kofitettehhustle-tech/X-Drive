@@ -264,9 +264,21 @@
     </div>
 
     <script src="../js/api-config.js"></script>
+    <script src="../js/catalog.js"></script>
     <script src="../js/api-client.js"></script>
     <script>
         let currentEmail = null;
+
+        function displayOrderServiceTitle(value) {
+            const escaped = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return window.XDriveCatalog.brandText(value).replace(/[&<>"']/g, (character) => escaped[character]);
+        }
 
         function saveEmail(email) {
             localStorage.setItem('xdrive_customer_email', email);
@@ -325,7 +337,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Service</span>
-                            <span class="detail-value">${order.serviceTitle}</span>
+                            <span class="detail-value">${displayOrderServiceTitle(order.serviceTitle)}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Quantity</span>

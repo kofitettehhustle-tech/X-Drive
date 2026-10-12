@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (catalog.source === 'morethanpanel') {
         const updatedAt = window.XDriveCatalog.formatUpdatedAt(catalog.updatedAt);
         catalogMeta.textContent = updatedAt
-            ? `✓ Morethanpanel catalog · refreshed ${updatedAt} · updated weekly · 50% markup applied`
-            : '✓ Morethanpanel catalog · updated weekly · 50% markup applied';
+            ? `✓ X-Drive service catalog · refreshed ${updatedAt} · updated weekly · 50% markup applied`
+            : '✓ X-Drive service catalog · updated weekly · 50% markup applied';
     } else {
-        catalogMeta.textContent = `Preview mode · ${services.length} sample offers · Morethanpanel sync not connected`;
+        catalogMeta.textContent = `Preview mode · ${services.length} sample offers · X-Drive live catalog sync unavailable`;
     }
 
     if (requestedService && selectedService) {
