@@ -238,3 +238,41 @@ p {
         display: block;
     }
 }
+
+
+/* Official social-platform marks; adjacent text remains the accessible label. */
+.xdrive-platform-mark {
+    display: inline-block;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: 0 0 auto;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.xdrive-platform-mark--filter {
+    width: 1rem;
+    height: 1rem;
+}
+
+.xdrive-platform-mark--service {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.xdrive-platform-mark--featured {
+    width: 1rem;
+    height: 1rem;
+}
+
+.xdrive-platform-mark--fallback {
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+}

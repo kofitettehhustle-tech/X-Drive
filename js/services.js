@@ -6,10 +6,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultsLabel = document.getElementById('catalog-results');
     const pagination = document.getElementById('catalog-pagination');
     const catalogMeta = document.getElementById('catalog-meta');
-    const refillableFilter = document.getElementById('refillable-filter');
+    const clearFiltersButton = document.getElementById('clear-catalog-filters');
+    const featureFilterInputs = Array.from(document.querySelectorAll('[data-feature-filter]'));
     const pageSize = 30;
     const selectedPlatforms = new Set();
-    let showRefillableOnly = false;
+    const selectedFeatures = new Set();
     let currentPage = 1;
 
     if (!window.XDriveCatalog || !serviceList) return;
@@ -26,8 +27,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const catalogStats = document.getElementById('catalog-stats');
     if (catalogStats) {
-        const platforms = new Set(services.map(s => s.platform));
-        const refillableCount = services.filter(s => s.refillable).length;
+        const platforms = new Set(services.map((service) => service.platform));
+        const refillableCount = services.filter((service) => service.refillable).length;
         catalogStats.innerHTML = `
             <div><strong>${platforms.size}</strong> platforms</div>
             <div><strong>${refillableCount.toLocaleString()}</strong> refillable services</div>
@@ -49,13 +50,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput.value = selectedService.title;
     }
 
-    [...new Set(services.map((service) => service.platform))]
+    const platformCounts = new Map();
+    services.forEach((service) => {
+        platformCounts.set(service.platform, (platformCounts.get(service.platform) || 0) + 1);
+    });
+
+    [...platformCounts.keys()]
         .sort((first, second) => first.localeCompare(second))
         .forEach((platform) => {
             const label = document.createElement('label');
+            label.className = 'platform-filter-option';
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = platform;
+            checkbox.setAttribute('aria-label', `Filter by ${platform}`);
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked) selectedPlatforms.add(platform);
                 else selectedPlatforms.delete(platform);
@@ -63,17 +72,40 @@ document.addEventListener('DOMContentLoaded', async () => {
                 render();
             });
 
+            const icon = window.XDrivePlatformIcons?.create(platform, 'filter');
             const platformName = document.createElement('span');
+            platformName.className = 'platform-filter-name';
             platformName.textContent = platform;
-            label.append(checkbox, platformName);
+            const count = document.createElement('span');
+            count.className = 'filter-count';
+            count.textContent = platformCounts.get(platform).toLocaleString();
+
+            label.append(checkbox);
+            if (icon) label.append(icon);
+            label.append(platformName, count);
             platformFilters.appendChild(label);
         });
+
+    featureFilterInputs.forEach((input) => {
+        const count = services.filter((service) => service[input.value] === true).length;
+        const countLabel = input.closest('label')?.querySelector('[data-feature-count]');
+        if (countLabel) countLabel.textContent = count.toLocaleString();
+        input.disabled = count === 0;
+        if (count === 0) input.title = 'No services are explicitly listed with this feature.';
+
+        input.addEventListener('change', () => {
+            if (input.checked) selectedFeatures.add(input.value);
+            else selectedFeatures.delete(input.value);
+            currentPage = 1;
+            render();
+        });
+    });
 
     function getFilteredServices() {
         const query = searchInput.value.trim().toLowerCase();
         const filtered = services.filter((service) => {
             if (selectedPlatforms.size && !selectedPlatforms.has(service.platform)) return false;
-            if (showRefillableOnly && !service.refillable) return false;
+            if ([...selectedFeatures].some((feature) => service[feature] !== true)) return false;
             if (query && ![
                 service.platform,
                 service.title,
@@ -84,11 +116,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if (sortSelect.value === 'price-desc') {
-            filtered.sort((first, second) => second.pricePer1000 - first.pricePer1000);
+            filtered.sort((first, second) => second.pricePer1000 - first.pricePer1000 || first.title.localeCompare(second.title));
         } else if (sortSelect.value === 'platform') {
             filtered.sort((first, second) => first.platform.localeCompare(second.platform) || first.pricePer1000 - second.pricePer1000);
         } else {
-            filtered.sort((first, second) => first.pricePer1000 - second.pricePer1000);
+            filtered.sort((first, second) => first.pricePer1000 - second.pricePer1000 || first.title.localeCompare(second.title));
         }
 
         return filtered;
@@ -102,7 +134,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         info.className = 'service-info';
         const platform = document.createElement('div');
         platform.className = 'service-platform';
-        platform.textContent = service.platform;
+        const platformIcon = window.XDrivePlatformIcons?.create(service.platform, 'service');
+        const platformName = document.createElement('span');
+        platformName.textContent = service.platform;
+        if (platformIcon) platform.appendChild(platformIcon);
+        platform.appendChild(platformName);
+
         const name = document.createElement('h3');
         name.className = 'service-name';
         name.textContent = service.title;
@@ -125,11 +162,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             meta.appendChild(delivery);
         }
 
-        if (service.refillable === true) {
-            const refill = document.createElement('span');
-            refill.className = 'refillable-badge';
-            refill.innerHTML = '♻️ Refill available';
-            meta.appendChild(refill);
+        const featureBadges = [
+            service.refillable ? ['refillable', 'Refill available'] : service.refillMentioned ? ['refillMentioned', 'Refill mentioned—verify details'] : null,
+            ['nonDrop', 'Non-drop'],
+            ['guaranteed', 'Guaranteed'],
+            ['fastStart', 'Fast start']
+        ].filter(Boolean).filter(([feature]) => service[feature] === true);
+
+        if (featureBadges.length) {
+            const badgeList = document.createElement('div');
+            badgeList.className = 'service-feature-badges';
+            featureBadges.forEach(([, label]) => {
+                const badge = document.createElement('span');
+                badge.className = 'service-feature-badge';
+                badge.textContent = label;
+                badgeList.appendChild(badge);
+            });
+            meta.appendChild(badgeList);
         }
 
         info.append(platform, name, description, meta);
@@ -192,6 +241,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         resultsLabel.textContent = filteredServices.length
             ? `Showing ${start + 1}–${Math.min(start + pageSize, filteredServices.length)} of ${filteredServices.length} services`
             : 'No services match these filters.';
+        if (clearFiltersButton) {
+            clearFiltersButton.disabled = !searchInput.value.trim()
+                && selectedPlatforms.size === 0
+                && selectedFeatures.size === 0
+                && sortSelect.value === 'price-asc';
+        }
         renderPagination(pageCount);
     }
 
@@ -203,9 +258,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPage = 1;
         render();
     });
-    if (refillableFilter) {
-        refillableFilter.addEventListener('change', () => {
-            showRefillableOnly = refillableFilter.checked;
+
+    if (clearFiltersButton) {
+        clearFiltersButton.addEventListener('click', () => {
+            searchInput.value = '';
+            sortSelect.value = 'price-asc';
+            selectedPlatforms.clear();
+            selectedFeatures.clear();
+            platformFilters.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.checked = false;
+            });
+            featureFilterInputs.forEach((input) => {
+                input.checked = false;
+            });
             currentPage = 1;
             render();
         });

@@ -61,7 +61,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         number.textContent = num;
         const platform = document.createElement('span');
         platform.className = 'card-platform';
-        platform.textContent = service.platform;
+        const platformIcon = window.XDrivePlatformIcons?.create(service.platform, 'featured');
+        const platformName = document.createElement('span');
+        platformName.textContent = service.platform;
+        if (platformIcon) platform.appendChild(platformIcon);
+        platform.appendChild(platformName);
         header.append(number, platform);
 
         const title = document.createElement('h3');

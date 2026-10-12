@@ -33,6 +33,10 @@
             position: sticky;
             top: 100px;
             align-self: start;
+            padding: var(--space-lg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            background: var(--color-surface);
         }
         
         .filter-group {
@@ -58,6 +62,61 @@
             align-items: center;
             gap: var(--space-sm);
             cursor: pointer;
+        }
+
+        .feature-filter-list label {
+            display: grid;
+            grid-template-columns: 16px minmax(0, 1fr) auto;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+
+        .feature-filter-list input,
+        .platform-filter-option input {
+            accent-color: var(--color-primary);
+        }
+
+        .feature-filter-list input:disabled {
+            cursor: not-allowed;
+        }
+
+        .platform-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-xs);
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .platform-filter-option {
+            display: grid !important;
+            grid-template-columns: 14px 18px minmax(0, 1fr) auto;
+            gap: 5px !important;
+            align-items: center;
+            min-width: 0;
+            padding: 5px 2px;
+        }
+
+        .platform-filter-name {
+            overflow: hidden;
+            color: var(--color-text);
+            font-size: 0.74rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .filter-count {
+            color: var(--color-muted);
+            font-size: 0.68rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .filter-help {
+            margin: var(--space-xs) 0 0;
+            color: var(--color-muted);
+            font-size: 0.72rem;
+            line-height: 1.45;
         }
 
         .service-list {
@@ -86,6 +145,9 @@
         }
 
         .service-platform {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
             color: var(--color-primary);
             font-weight: 600;
             font-size: 0.875rem;
@@ -100,9 +162,30 @@
 
         .service-meta {
             display: flex;
+            align-items: center;
+            flex-wrap: wrap;
             gap: var(--space-md);
             color: var(--color-muted);
             font-size: 0.875rem;
+        }
+
+        .service-feature-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+        }
+
+        .service-feature-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-full);
+            background: var(--color-primary-muted);
+            color: var(--color-primary);
+            font-size: 0.72rem;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         .service-action {
@@ -177,6 +260,39 @@
 
         .catalog-meta {
             padding-top: var(--space-sm);
+        }
+
+        .catalog-results-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+        }
+
+        .catalog-results-row .catalog-results {
+            margin: 0;
+        }
+
+        .catalog-clear-filters {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--color-text);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+
+        .catalog-clear-filters:hover:not(:disabled) {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .catalog-clear-filters:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
         .catalog-controls {
@@ -352,7 +468,7 @@
                 <header class="catalog-heading">
                     <div>
                         <h2 id="catalog-title">Social media services</h2>
-                        <p>Enabled services, sorted from lowest price per 1K.</p>
+                        <p>Browse by lowest price, platform, refill, non-drop, and other listed features.</p>
                     </div>
                     <div id="catalog-stats" style="text-align: right; font-size: 0.875rem; color: var(--color-muted);"></div>
                 </header>
@@ -374,23 +490,43 @@
                             </select>
                         </div>
                         <div class="filter-group">
-                            <h4>Features</h4>
-                            <div class="filter-list">
+                            <h4>Service features</h4>
+                            <div class="filter-list feature-filter-list">
                                 <label>
-                                    <input type="checkbox" id="refillable-filter" value="refillable">
-                                    <span>♻️ Refillable only</span>
+                                    <input type="checkbox" id="non-drop-filter" data-feature-filter value="nonDrop">
+                                    <span>Non-drop</span>
+                                    <span class="filter-count" data-feature-count>0</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="refillable-filter" data-feature-filter value="refillMentioned">
+                                    <span>Refill listed</span>
+                                    <span class="filter-count" data-feature-count>0</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="guaranteed-filter" data-feature-filter value="guaranteed">
+                                    <span>Guaranteed</span>
+                                    <span class="filter-count" data-feature-count>0</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="fast-start-filter" data-feature-filter value="fastStart">
+                                    <span>Fast start</span>
+                                    <span class="filter-count" data-feature-count>0</span>
                                 </label>
                             </div>
+                            <p class="filter-help">Filters use explicit listing details. Some refill wording can disagree with the provider flag; verify service terms.</p>
                         </div>
                         <div class="filter-group">
                             <h4>Platform</h4>
-                            <div class="filter-list" id="platform-filters"></div>
+                            <div class="filter-list platform-filter-grid" id="platform-filters"></div>
                         </div>
                     </div>
                 </aside>
 
                 <div>
-                    <p class="catalog-results" id="catalog-results" role="status" aria-live="polite"></p>
+                    <div class="catalog-results-row">
+                        <p class="catalog-results" id="catalog-results" role="status" aria-live="polite"></p>
+                        <button class="catalog-clear-filters" id="clear-catalog-filters" type="button" disabled>Clear filters</button>
+                    </div>
                     <div class="service-list" id="service-list"></div>
                     <nav class="catalog-pagination" id="catalog-pagination" aria-label="Service catalog pages"></nav>
                 </div>
@@ -415,6 +551,7 @@
     <script src="js/api-config.js"></script>
     <script src="js/mock-data.js"></script>
     <script src="js/catalog.js"></script>
+    <script src="js/platform-icons.js"></script>
     <script src="js/app.js"></script>
     <script src="js/services.js"></script>
     <script src="js/xdrive-radio.js"></script>

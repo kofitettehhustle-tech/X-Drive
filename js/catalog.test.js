@@ -33,6 +33,13 @@ test('brandText replaces provider names, spelling variants, and MTP for display'
     );
 });
 
+test('brandText removes leading colored feed dots while preserving country flags', () => {
+    const catalog = createCatalog({ source: 'morethanpanel', services: [] });
+
+    assert.equal(catalog.brandText('🟢 🇧🇷 Instagram service'), '🇧🇷 Instagram service');
+    assert.equal(catalog.brandText('🔵 Services for Gamers'), 'Services for Gamers');
+});
+
 test('live service display text is branded without changing provider IDs or prices', async () => {
     const serviceId = 'provider-service-418';
     const catalog = createCatalog({
@@ -41,24 +48,41 @@ test('live service display text is branded without changing provider IDs or pric
         services: [{
             id: serviceId,
             platform: 'Instagram',
-            title: 'MTP Instagram Views from MoreThanPanel',
-            category: 'Morethanpannel Views',
-            description: 'MTP service by More Than Panel',
+            title: '🟢 🇧🇷 MTP Instagram Non-drop Views from MoreThanPanel Guaranteed Fast Start',
+            category: '🔵 Morethanpannel Views',
+            description: '🔵 MTP service by More Than Panel',
             pricePer1000: 1.25,
             minimum: 10,
             maximum: 10000,
+            refillable: true,
+            enabled: true
+        }, {
+            id: 'provider-service-refill-title',
+            platform: 'Instagram',
+            title: '🟢 Instagram Views | 30 Day Refill |',
+            category: '🔵 Instagram Views',
+            description: 'Views for Instagram',
+            pricePer1000: 2.5,
+            minimum: 10,
+            maximum: 2000,
             refillable: false,
             enabled: true
         }]
     });
 
     const result = await catalog.load();
-    const [service] = result.services;
+    const [service, refillConflict] = result.services;
 
     assert.equal(result.source, 'morethanpanel');
     assert.equal(service.id, serviceId);
     assert.equal(service.pricePer1000, 1.25);
-    assert.equal(service.title, 'X-Drive Instagram Views from X-Drive');
+    assert.equal(service.title, '🇧🇷 X-Drive Instagram Non-drop Views from X-Drive Guaranteed Fast Start');
     assert.equal(service.category, 'X-Drive Views');
     assert.equal(service.description, 'X-Drive service by X-Drive');
+    assert.equal(service.refillable, true);
+    assert.equal(service.nonDrop, true);
+    assert.equal(service.guaranteed, true);
+    assert.equal(service.fastStart, true);
+    assert.equal(refillConflict.refillable, false);
+    assert.equal(refillConflict.refillMentioned, true);
 });
