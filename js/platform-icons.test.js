@@ -10,19 +10,11 @@ class FakeElement {
     constructor(tagName) {
         this.tagName = tagName.toUpperCase();
         this.attributes = {};
-        this.listeners = {};
+        this.style = {};
     }
 
     setAttribute(name, value) {
         this.attributes[name] = value;
-    }
-
-    addEventListener(name, callback) {
-        this.listeners[name] = callback;
-    }
-
-    replaceWith(element) {
-        this.replacedWith = element;
     }
 }
 
@@ -33,41 +25,45 @@ function loadIcons() {
     return window.XDrivePlatformIcons;
 }
 
-test('maps every catalog platform to its matching Simple Icons brand slug', () => {
+test('maps catalog platform names to Remix Icon brand glyph classes', () => {
     const icons = loadIcons();
     const expected = {
-        Discord: 'discord',
-        Facebook: 'facebook',
-        Instagram: 'instagram',
-        Kick: 'kick',
-        LinkedIn: 'linkedin',
-        Snapchat: 'snapchat',
-        SoundCloud: 'soundcloud',
-        Spotify: 'spotify',
-        Telegram: 'telegram',
-        TikTok: 'tiktok',
-        Twitch: 'twitch',
-        X: 'x',
-        YouTube: 'youtube'
+        Discord: 'ri-discord-fill',
+        Facebook: 'ri-facebook-fill',
+        Instagram: 'ri-instagram-fill',
+        Kick: 'ri-kick-fill',
+        LinkedIn: 'ri-linkedin-fill',
+        Snapchat: 'ri-snapchat-fill',
+        SoundCloud: 'ri-soundcloud-fill',
+        Spotify: 'ri-spotify-fill',
+        Telegram: 'ri-telegram-fill',
+        TikTok: 'ri-tiktok-fill',
+        Twitch: 'ri-twitch-fill',
+        X: 'ri-twitter-x-fill',
+        YouTube: 'ri-youtube-fill'
     };
 
-    for (const [platform, slug] of Object.entries(expected)) {
-        assert.equal(icons.definitionFor(platform)?.slug, slug, platform);
+    for (const [platform, className] of Object.entries(expected)) {
+        assert.equal(icons.definitionFor(platform)?.className, className, platform);
     }
-    assert.equal(icons.definitionFor('Twitter')?.slug, 'x');
+    assert.equal(icons.definitionFor('Twitter')?.className, 'ri-twitter-x-fill');
     assert.equal(icons.definitionFor('Unknown Platform'), null);
 });
 
-test('creates a color-branded image and falls back to a monogram if the CDN image fails', () => {
+test('creates accessible, brand-colored Remix font icons and a refill glyph', () => {
     const icons = loadIcons();
-    const image = icons.create('Instagram', 'filter');
+    const platformIcon = icons.create('Instagram', 'filter');
 
-    assert.equal(image.tagName, 'IMG');
-    assert.equal(image.src, 'https://cdn.simpleicons.org/instagram/E4405F');
-    assert.equal(image.loading, 'lazy');
-    assert.equal(image.attributes['aria-hidden'], 'true');
+    assert.equal(platformIcon.tagName, 'I');
+    assert.equal(platformIcon.className, 'ri-instagram-fill xdrive-platform-mark xdrive-platform-mark--filter');
+    assert.equal(platformIcon.style.color, '#E4405F');
+    assert.equal(platformIcon.attributes['aria-hidden'], 'true');
 
-    image.listeners.error();
-    assert.equal(image.replacedWith.tagName, 'SPAN');
-    assert.equal(image.replacedWith.textContent, 'IG');
+    const refillIcon = icons.createRefillIcon();
+    assert.equal(refillIcon.className, 'ri-refresh-line xdrive-refill-mark');
+    assert.equal(refillIcon.attributes['aria-hidden'], 'true');
+
+    const fallback = icons.create('Unknown Platform', 'filter');
+    assert.equal(fallback.tagName, 'SPAN');
+    assert.equal(fallback.textContent, 'UP');
 });

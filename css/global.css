@@ -240,29 +240,29 @@ p {
 }
 
 
-/* Official social-platform marks; adjacent text remains the accessible label. */
+/* Remix Icon platform glyphs; adjacent text remains the accessible label. */
 .xdrive-platform-mark {
-    display: inline-block;
-    width: 1.15rem;
-    height: 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2em;
+    height: 1.2em;
     flex: 0 0 auto;
-    object-fit: contain;
+    line-height: 1;
+    text-align: center;
     vertical-align: middle;
 }
 
 .xdrive-platform-mark--filter {
-    width: 1rem;
-    height: 1rem;
+    font-size: 1rem;
 }
 
 .xdrive-platform-mark--service {
-    width: 1.2rem;
-    height: 1.2rem;
+    font-size: 1.2rem;
 }
 
 .xdrive-platform-mark--featured {
-    width: 1rem;
-    height: 1rem;
+    font-size: 1rem;
 }
 
 .xdrive-platform-mark--fallback {
@@ -275,4 +275,12 @@ p {
     font-size: 0.62rem;
     font-weight: 700;
     line-height: 1;
+}
+
+.xdrive-refill-mark {
+    display: inline-block;
+    margin-right: 0.25em;
+    color: var(--color-primary);
+    line-height: 1;
+    vertical-align: -0.08em;
 }

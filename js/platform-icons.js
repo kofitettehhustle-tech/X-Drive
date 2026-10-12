@@ -1,18 +1,18 @@
 (() => {
     const definitions = [
-        { match: /\bdiscord\b/i, slug: 'discord', color: '5865F2', short: 'D' },
-        { match: /\bfacebook\b/i, slug: 'facebook', color: '0866FF', short: 'f' },
-        { match: /\binstagram\b/i, slug: 'instagram', color: 'E4405F', short: 'IG' },
-        { match: /\bkick\b/i, slug: 'kick', color: '53FC18', short: 'K' },
-        { match: /\blinkedin\b/i, slug: 'linkedin', color: '0A66C2', short: 'in' },
-        { match: /\bsnapchat\b/i, slug: 'snapchat', color: 'FFFC00', short: 'S' },
-        { match: /\bsoundcloud\b/i, slug: 'soundcloud', color: 'FF5500', short: 'SC' },
-        { match: /\bspotify\b/i, slug: 'spotify', color: '1ED760', short: 'S' },
-        { match: /\btelegram\b/i, slug: 'telegram', color: '26A5E4', short: 'T' },
-        { match: /\btiktok\b/i, slug: 'tiktok', color: '25F4EE', short: '♪' },
-        { match: /\btwitch\b/i, slug: 'twitch', color: '9146FF', short: 'T' },
-        { match: /^(?:x|twitter)(?:\s*\/\s*(?:twitter|x)|\s*\(\s*(?:twitter|x)\s*\))?$/i, slug: 'x', color: 'E7E9EA', short: 'X' },
-        { match: /\byoutube\b/i, slug: 'youtube', color: 'FF0033', short: '▶' }
+        { match: /\bdiscord\b/i, className: 'ri-discord-fill', color: '#5865F2', short: 'D' },
+        { match: /\bfacebook\b/i, className: 'ri-facebook-fill', color: '#0866FF', short: 'f' },
+        { match: /\binstagram\b/i, className: 'ri-instagram-fill', color: '#E4405F', short: 'IG' },
+        { match: /\bkick\b/i, className: 'ri-kick-fill', color: '#53FC18', short: 'K' },
+        { match: /\blinkedin\b/i, className: 'ri-linkedin-fill', color: '#0A66C2', short: 'in' },
+        { match: /\bsnapchat\b/i, className: 'ri-snapchat-fill', color: '#FFFC00', short: 'S' },
+        { match: /\bsoundcloud\b/i, className: 'ri-soundcloud-fill', color: '#FF5500', short: 'SC' },
+        { match: /\bspotify\b/i, className: 'ri-spotify-fill', color: '#1ED760', short: 'S' },
+        { match: /\btelegram\b/i, className: 'ri-telegram-fill', color: '#26A5E4', short: 'T' },
+        { match: /\btiktok\b/i, className: 'ri-tiktok-fill', color: '#25F4EE', short: '♪' },
+        { match: /\btwitch\b/i, className: 'ri-twitch-fill', color: '#9146FF', short: 'T' },
+        { match: /^(?:x|twitter)(?:\s*\/\s*(?:twitter|x)|\s*\(\s*(?:twitter|x)\s*\))?$/i, className: 'ri-twitter-x-fill', color: '#E7E9EA', short: 'X' },
+        { match: /\byoutube\b/i, className: 'ri-youtube-fill', color: '#FF0033', short: '▶' }
     ];
 
     function definitionFor(platform) {
@@ -36,17 +36,19 @@
         const definition = definitionFor(name);
         if (!definition) return fallbackIcon(name, variant, null);
 
-        const image = document.createElement('img');
-        image.className = `xdrive-platform-mark xdrive-platform-mark--${variant}`;
-        image.alt = '';
-        image.setAttribute('aria-hidden', 'true');
-        image.loading = 'lazy';
-        image.decoding = 'async';
-        image.referrerPolicy = 'no-referrer';
-        image.addEventListener('error', () => image.replaceWith(fallbackIcon(name, variant, definition)), { once: true });
-        image.src = `https://cdn.simpleicons.org/${definition.slug}/${definition.color}`;
-        return image;
+        const icon = document.createElement('i');
+        icon.className = `${definition.className} xdrive-platform-mark xdrive-platform-mark--${variant}`;
+        icon.style.color = definition.color;
+        icon.setAttribute('aria-hidden', 'true');
+        return icon;
     }
 
-    window.XDrivePlatformIcons = { create, definitionFor };
+    function createRefillIcon() {
+        const icon = document.createElement('i');
+        icon.className = 'ri-refresh-line xdrive-refill-mark';
+        icon.setAttribute('aria-hidden', 'true');
+        return icon;
+    }
+
+    window.XDrivePlatformIcons = { create, createRefillIcon, definitionFor };
 })();

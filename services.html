@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/components-rebuilt.css">
     <link rel="stylesheet" href="css/info.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/xdrive-radio.css">
     <style>
@@ -69,6 +70,16 @@
             grid-template-columns: 16px minmax(0, 1fr) auto;
             gap: var(--space-sm);
             align-items: center;
+        }
+
+        .feature-filter-list .feature-filter-option--refill {
+            grid-template-columns: 16px 1rem minmax(0, 1fr) auto;
+        }
+
+        .refill-filter-icon {
+            color: var(--color-primary);
+            font-size: 1rem;
+            text-align: center;
         }
 
         .feature-filter-list input,
@@ -317,6 +328,17 @@
             color: var(--color-primary);
         }
 
+        .service-feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3em;
+        }
+
+        .service-feature-badge .xdrive-refill-mark {
+            color: var(--color-primary);
+            margin-right: 0;
+        }
+
         .refillable-badge {
             display: inline-flex;
             align-items: center;
@@ -497,8 +519,9 @@
                                     <span>Non-drop</span>
                                     <span class="filter-count" data-feature-count>0</span>
                                 </label>
-                                <label>
+                                <label class="feature-filter-option--refill">
                                     <input type="checkbox" id="refillable-filter" data-feature-filter value="refillMentioned">
+                                    <i class="ri-refresh-line refill-filter-icon" aria-hidden="true"></i>
                                     <span>Refill listed</span>
                                     <span class="filter-count" data-feature-count>0</span>
                                 </label>

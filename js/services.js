@@ -172,10 +172,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (featureBadges.length) {
             const badgeList = document.createElement('div');
             badgeList.className = 'service-feature-badges';
-            featureBadges.forEach(([, label]) => {
+            featureBadges.forEach(([feature, label]) => {
                 const badge = document.createElement('span');
                 badge.className = 'service-feature-badge';
-                badge.textContent = label;
+                if (feature === 'refillable' || feature === 'refillMentioned') {
+                    const refillIcon = window.XDrivePlatformIcons?.createRefillIcon();
+                    if (refillIcon) badge.appendChild(refillIcon);
+                }
+                badge.appendChild(document.createTextNode(label));
                 badgeList.appendChild(badge);
             });
             meta.appendChild(badgeList);
