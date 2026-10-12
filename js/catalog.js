@@ -1,5 +1,6 @@
 (() => {
-    const catalogUrl = '/api/storefront/catalog';
+    const apiBaseUrl = String(window.XDRIVE_API_BASE_URL || '').replace(/\/+$/, '');
+    const catalogUrl = `${apiBaseUrl}/api/storefront/catalog`;
 
     function normalizeService(service) {
         const pricePer1000 = Number(service.pricePer1000);

@@ -1,6 +1,6 @@
 class XDriveAPIClient {
-    constructor(baseURL = '') {
-        this.baseURL = baseURL;
+    constructor(baseURL = window.XDRIVE_API_BASE_URL || '') {
+        this.baseURL = baseURL.replace(/\/+$/, '');
     }
 
     async request(endpoint, options = {}) {

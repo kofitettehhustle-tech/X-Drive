@@ -11,6 +11,10 @@ The storefront reads its service list from `GET /api/storefront/catalog`. The No
 5. Start the site with `npm run dev`, or use `npm start` for a normal Node process.
 6. Run the database tests with `npm test`.
 
+### Frontend hosted on a different domain
+
+For the current deployment, set `XDRIVE_ALLOWED_ORIGINS=https://kofitettehhustle-tech.github.io` in Render (the GitHub Pages origin inferred from this repository's GitHub remote; confirm the exact deployed hostname). The frontend's `js/api-config.js` points to `https://x-drive-ams0.onrender.com`. When Vercel assigns the production domain, add that exact origin to the comma-separated Render allowlist, for example `https://kofitettehhustle-tech.github.io,https://your-site.vercel.app` (no paths; include `www` separately if used). The CORS middleware only returns browser access headers for configured origins and handles JSON preflight requests. CORS is not authentication; protect admin routes separately before exposing them publicly.
+
 ### Local UI testing without provider access
 
 For an isolated PowerShell test, run `$env:XDRIVE_USE_MOCK_CATALOG='true'; $env:XDRIVE_DATABASE_PATH=(Join-Path $env:TEMP 'xdrive-mock.sqlite'); $env:PORT='33187'; npm.cmd run dev`. The server serves a clearly labeled mock catalog through the normal storefront catalog endpoint without making Morethanpanel requests, and uses a temporary database instead of replacing the normal catalog snapshot. Open `http://localhost:33187/` to review the UI. The services page and homepage identify the data as mock, and order submissions return `409` while mock mode is active. The setting defaults to `false`; unset it or set it back to `false` before testing live sync or deploying. Do not enable mock mode in production.

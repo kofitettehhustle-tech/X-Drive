@@ -9,6 +9,29 @@ const { MoreThanPanelClient } = require('./morethanpanel-client');
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const app = express();
+const allowedOrigins = new Set(
+    (process.env.XDRIVE_ALLOWED_ORIGINS || '')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+);
+
+app.use((request, response, next) => {
+    const origin = request.get('Origin');
+    response.vary('Origin');
+
+    if (origin && allowedOrigins.has(origin)) {
+        response.set('Access-Control-Allow-Origin', origin);
+        response.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        response.set('Access-Control-Allow-Headers', 'Accept, Content-Type');
+        if (request.method === 'OPTIONS') return response.sendStatus(204);
+    } else if (request.method === 'OPTIONS') {
+        return response.sendStatus(403);
+    }
+
+    next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
