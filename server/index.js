@@ -91,15 +91,40 @@ function normalizeProviderService(service, markupPercent) {
     };
 }
 
+const mockProviderServices = [
+    { service: 'mock-ig-followers', name: 'Instagram Followers · Mock', category: 'Instagram Followers', rate: '1.20', min: '50', max: '10000', refill: true },
+    { service: 'mock-ig-likes', name: 'Instagram Likes · Mock', category: 'Instagram Likes', rate: '0.45', min: '10', max: '50000', refill: false },
+    { service: 'mock-tt-views', name: 'TikTok Views · Mock', category: 'TikTok Views', rate: '0.18', min: '100', max: '1000000', refill: false },
+    { service: 'mock-yt-views', name: 'YouTube Views · Mock', category: 'YouTube Views', rate: '2.50', min: '100', max: '500000', refill: false },
+    { service: 'mock-fb-followers', name: 'Facebook Followers · Mock', category: 'Facebook Followers', rate: '1.75', min: '50', max: '25000', refill: true },
+    { service: 'mock-spotify-plays', name: 'Spotify Plays · Mock', category: 'Spotify Plays', rate: '0.80', min: '100', max: '100000', refill: false }
+];
+
 async function refreshCatalog() {
     if (refreshInFlight) return refreshInFlight;
 
+    const useMockCatalog = process.env.XDRIVE_USE_MOCK_CATALOG === 'true';
     const apiKey = process.env.MORETHANPANEL_API_KEY;
     const markupPercent = getMarkupPercent();
-    if (!apiKey || markupPercent === null) return false;
+    if (markupPercent === null || (!useMockCatalog && !apiKey)) return false;
 
     refreshInFlight = (async () => {
         try {
+            if (useMockCatalog) {
+                const services = mockProviderServices
+                    .map((service) => normalizeProviderService(service, markupPercent))
+                    .filter(Boolean);
+                if (!services.length) throw new Error('Mock catalog has no supported services');
+
+                catalogCache = catalogStore.saveCatalog({
+                    source: 'mock',
+                    updatedAt: new Date().toISOString(),
+                    services
+                });
+                console.warn(`Local mock catalog loaded: ${services.length} services. Provider calls and orders are disabled in this mode.`);
+                return true;
+            }
+
             const response = await fetch(moreThanPanelEndpoint, {
                 method: 'POST',
                 headers: {
@@ -168,6 +193,10 @@ app.post('/api/storefront/orders', async (request, response) => {
         const service = catalogCache.services.find(s => s.id === serviceId);
         if (!service) {
             return response.status(404).json({ error: 'Service not found' });
+        }
+
+        if (catalogCache.source === 'mock') {
+            return response.status(409).json({ error: 'Orders are disabled while the local mock catalog is active.' });
         }
 
         const quantityNum = Number(quantity);

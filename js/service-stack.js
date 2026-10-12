@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const catalogNote = document.querySelector('[data-featured-catalog-note]');
 
     if (catalogNote) {
-        if (catalog.source === 'morethanpanel') {
+        if (catalog.source === 'mock') {
+            catalogNote.textContent = 'LOCAL MOCK PICKS · sample data only · orders disabled.';
+        } else if (catalog.source === 'morethanpanel') {
             const updatedAt = window.XDriveCatalog.formatUpdatedAt(catalog.updatedAt);
             catalogNote.textContent = updatedAt
                 ? `X Drive weekly picks · updated ${updatedAt}`

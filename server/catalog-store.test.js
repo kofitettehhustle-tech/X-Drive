@@ -83,3 +83,22 @@ test('failed catalog replacement leaves the last complete snapshot intact', (t) 
     assert.equal(retainedCatalog.updatedAt, '2026-10-07T12:00:00.000Z');
     assert.deepEqual(retainedCatalog.services.map((service) => service.id), ['xd-old-service']);
 });
+
+test('mock catalog snapshots remain explicitly labeled', (t) => {
+    const { directory, databasePath } = createTemporaryDatabase();
+    const store = createCatalogStore(databasePath);
+    t.after(() => {
+        store.close();
+        fs.rmSync(directory, { recursive: true, force: true });
+    });
+
+    store.saveCatalog({
+        source: 'mock',
+        updatedAt: '2026-10-12T00:00:00.000Z',
+        services: [createService('xd-mock-service', 'mock-provider-service', 1.8)]
+    });
+
+    const catalog = store.getCatalog();
+    assert.equal(catalog.source, 'mock');
+    assert.equal(catalog.services[0].id, 'xd-mock-service');
+});

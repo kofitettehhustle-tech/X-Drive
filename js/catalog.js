@@ -49,7 +49,7 @@
                 if (!response.ok) throw new Error('Catalog request failed');
 
                 const payload = await response.json();
-                if (payload.source !== 'morethanpanel' || !Array.isArray(payload.services)) {
+                if (!['morethanpanel', 'mock'].includes(payload.source) || !Array.isArray(payload.services)) {
                     throw new Error('Unsupported catalog response');
                 }
 
@@ -57,7 +57,7 @@
                 if (!services.length) throw new Error('Catalog is empty');
 
                 return {
-                    source: 'morethanpanel',
+                    source: payload.source,
                     services: services.filter((service) => service.enabled),
                     updatedAt: typeof payload.updatedAt === 'string' ? payload.updatedAt : null
                 };

@@ -70,8 +70,8 @@ function createCatalogStore(databasePath) {
     }
 
     function saveCatalog(catalog) {
-        if (catalog?.source !== 'morethanpanel' || !catalog.updatedAt || !Array.isArray(catalog.services) || catalog.services.length === 0) {
-            throw new TypeError('A complete Morethanpanel catalog is required.');
+        if (!['morethanpanel', 'mock'].includes(catalog?.source) || !catalog.updatedAt || !Array.isArray(catalog.services) || catalog.services.length === 0) {
+            throw new TypeError('A complete Morethanpanel or explicitly tagged mock catalog is required.');
         }
 
         database.exec('BEGIN IMMEDIATE');

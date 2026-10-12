@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const totalCountElement = document.getElementById('total-services-count');
     if (totalCountElement) {
-        totalCountElement.innerHTML = `<span class="live-indicator">LIVE</span> ${services.length.toLocaleString()} services`;
+        totalCountElement.innerHTML = `<span class="live-indicator">${catalog.source === 'mock' ? 'MOCK' : catalog.source === 'morethanpanel' ? 'LIVE' : 'PREVIEW'}</span> ${services.length.toLocaleString()} services`;
     }
 
     const catalogStats = document.getElementById('catalog-stats');
@@ -34,7 +34,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 
-    if (catalog.source === 'morethanpanel') {
+    if (catalog.source === 'mock') {
+        catalogMeta.textContent = `LOCAL MOCK CATALOG · ${services.length} sample services · orders disabled · no provider connection`;
+    } else if (catalog.source === 'morethanpanel') {
         const updatedAt = window.XDriveCatalog.formatUpdatedAt(catalog.updatedAt);
         catalogMeta.textContent = updatedAt
             ? `✓ Morethanpanel catalog · refreshed ${updatedAt} · updated weekly · 50% markup applied`
