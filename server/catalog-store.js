@@ -120,7 +120,12 @@ function createCatalogStore(databasePath) {
         database.close();
     }
 
-    return { getCatalog, saveCatalog, close };
+    function getProviderServiceId(publicId) {
+        return database.prepare('SELECT provider_service_id FROM catalog_services WHERE public_id = ?')
+            .get(publicId)?.provider_service_id || null;
+    }
+
+    return { getCatalog, saveCatalog, getProviderServiceId, close };
 }
 
 module.exports = { createCatalogStore };

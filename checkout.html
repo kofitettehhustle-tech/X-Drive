@@ -85,10 +85,11 @@
             <nav class="nav-links">
                 <a href="services.html">Services</a>
                 <a href="help.html#order-updates">Order Updates</a>
+                <a href="customer-dashboard/wallet.html">Wallet</a>
             </nav>
 
             <div class="nav-actions">
-                <a href="login.html" class="text-muted">Cancel</a>
+                <a href="services.html" class="text-muted">Cancel</a>
             </div>
         </div>
         <div class="delivery-speed-strip" data-delivery-speed role="status" aria-live="polite">
@@ -107,29 +108,46 @@
                 <form id="checkout-form">
                     <h3 style="margin-bottom: var(--space-md);">1. Order Details</h3>
                     <div class="form-group">
-                        <label class="form-label">Target Link / Username</label>
-                        <input type="text" class="form-control" placeholder="https://instagram.com/..." required>
+                        <label class="form-label" for="target-link">Target Link / Username</label>
+                        <input id="target-link" type="text" class="form-control" placeholder="https://instagram.com/..." maxlength="2048" autocomplete="url" required>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Quantity</label>
-                        <input type="number" class="form-control" id="quantity-input" value="1000" min="100" required>
+                        <label class="form-label" for="quantity-input">Quantity</label>
+                        <input type="number" class="form-control" id="quantity-input" value="1000" min="1" step="1" required>
                         <small class="form-text text-muted" id="qty-limits">Min: 100 | Max: 100,000</small>
                     </div>
 
                     <h3 style="margin-top: var(--space-xl); margin-bottom: var(--space-md);">2. Customer Information</h3>
                     <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" placeholder="you@example.com" required>
+                        <label class="form-label" for="customer-email">Email Address</label>
+                        <input id="customer-email" type="email" class="form-control" placeholder="you@example.com" autocomplete="email" required>
                     </div>
+
+                    <section aria-labelledby="account-title" class="card" style="margin: var(--space-md) 0;">
+                        <h3 id="account-title">Guest checkout or use an account</h3>
+                        <p id="account-state" class="text-muted" aria-live="polite">Continue as a guest, or sign in/create an account for account-linked orders and wallet access.</p>
+                        <div class="form-group" id="password-group" hidden>
+                            <label class="form-label" for="account-password">Password</label>
+                            <input id="account-password" type="password" class="form-control" autocomplete="current-password" maxlength="128">
+                            <small class="form-text text-muted">New passwords must be at least 12 characters. Your session is kept only in this browser tab/session.</small>
+                        </div>
+                        <div style="display:flex; gap:var(--space-sm); flex-wrap:wrap; margin-top:var(--space-sm);">
+                            <button type="button" class="btn btn-secondary" id="toggle-signin">Sign in</button>
+                            <button type="button" class="btn btn-secondary" id="toggle-register">Create account</button>
+                            <button type="button" class="btn btn-secondary" id="account-cancel" hidden>Continue as guest</button>
+                            <button type="button" class="btn btn-secondary" id="sign-out" hidden>Sign out</button>
+                        </div>
+                    </section>
 
                     <h3 style="margin-top: var(--space-xl); margin-bottom: var(--space-md);">3. Payment</h3>
                     <div class="card" style="border-color: var(--color-primary); background-color: var(--color-primary-muted);">
-                        <p style="margin-bottom: var(--space-sm);"><strong>Paystack</strong> integration placeholder.</p>
-                        <p class="text-muted" style="font-size: 0.875rem;">Actual payment processing will be handled by the backend.</p>
+                        <p style="margin-bottom: var(--space-sm);"><strong>Paystack secure checkout</strong></p>
+                        <p class="text-muted" style="font-size: 0.875rem;">Payments are configured for test mode only. Payment confirmation is checked by X-Drive's server. No service fulfillment is triggered by payment in this release.</p>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-xl);">Pay Now</button>
+                    <p id="checkout-status" role="status" aria-live="polite" class="text-muted" style="margin-top:var(--space-md);"></p>
+                    <button id="submit-payment" type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-xl);">Continue to Paystack</button>
                 </form>
             </div>
 
@@ -173,102 +191,13 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/api-config.js"></script>
     <script src="js/mock-data.js"></script>
     <script src="js/catalog.js"></script>
     <script src="js/app.js"></script>
     <script src="js/xdrive-radio.js"></script>
     <script src="js/api-client.js"></script>
-    <script>
-        let selectedService = null;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const qtyInput = document.getElementById('quantity-input');
-            const summaryQty = document.getElementById('summary-qty');
-            const summaryTotal = document.getElementById('summary-total');
-            const summaryPrice = document.getElementById('summary-price');
-            const linkInput = document.querySelector('input[type="text"]');
-            const emailInput = document.querySelector('input[type="email"]');
-            const form = document.getElementById('checkout-form');
-            const submitBtn = form.querySelector('button[type="submit"]');
-
-            const savedEmail = localStorage.getItem('xdrive_customer_email');
-            if (savedEmail) {
-                emailInput.value = savedEmail;
-            }
-
-            const catalog = await window.XDriveCatalog.load();
-            const urlParams = new URLSearchParams(window.location.search);
-            const serviceId = urlParams.get('service');
-            selectedService = catalog.services.find((service) => service.id === serviceId) || catalog.services[0];
-
-            if (selectedService) {
-                document.getElementById('summary-platform').textContent = selectedService.platform;
-                document.getElementById('summary-name').textContent = selectedService.title;
-                summaryPrice.textContent = window.formatCurrency(selectedService.pricePer1000);
-                
-                qtyInput.min = selectedService.minimum;
-                qtyInput.max = selectedService.maximum;
-                qtyInput.value = selectedService.minimum;
-                document.getElementById('qty-limits').textContent = `Min: ${selectedService.minimum.toLocaleString()} | Max: ${selectedService.maximum.toLocaleString()}`;
-                
-                updateTotal();
-            }
-
-            function updateTotal() {
-                const qty = parseInt(qtyInput.value) || 0;
-                summaryQty.textContent = qty.toLocaleString();
-                
-                const total = (qty / 1000) * selectedService.pricePer1000;
-                summaryTotal.textContent = window.formatCurrency(total);
-            }
-
-            qtyInput.addEventListener('input', updateTotal);
-            
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const link = linkInput.value.trim();
-                const email = emailInput.value.trim();
-                const quantity = parseInt(qtyInput.value);
-
-                if (!link || !email || !quantity) {
-                    alert('Please fill in all fields');
-                    return;
-                }
-
-                if (quantity < selectedService.minimum || quantity > selectedService.maximum) {
-                    alert(`Quantity must be between ${selectedService.minimum.toLocaleString()} and ${selectedService.maximum.toLocaleString()}`);
-                    return;
-                }
-
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Processing Order...';
-
-                try {
-                    localStorage.setItem('xdrive_customer_email', email);
-
-                    const response = await xdriveAPI.createOrder({
-                        serviceId: selectedService.id,
-                        link: link,
-                        quantity: quantity,
-                        customerEmail: email
-                    });
-
-                    if (response.success && response.order) {
-                        alert(`✅ Order placed successfully!\n\nOrder ID: ${response.order.id}\nStatus: ${response.order.status}\n\nYou can track your order using your email address.`);
-                        window.location.href = `customer-dashboard/orders.html?email=${encodeURIComponent(email)}`;
-                    } else {
-                        throw new Error('Order creation failed');
-                    }
-                } catch (error) {
-                    console.error('Order error:', error);
-                    alert('❌ Failed to place order: ' + error.message);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Pay Now';
-                }
-            });
-        });
-    </script>
+    <script src="js/checkout.js" defer></script>
 </body>
 </html>

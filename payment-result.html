@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Payment status - X-Drive</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components-rebuilt.css">
+    <link rel="stylesheet" href="css/ocean-editorial-theme.css">
+    <link rel="icon" type="image/svg+xml" href="assets/images/xdrive-favicon.svg">
+    <style>
+        .payment-result { max-width: 760px; margin: 8rem auto 4rem; padding: 2rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+        .payment-result-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
+        #payment-message { white-space: pre-line; }
+        .safe-token { display: block; overflow-wrap: anywhere; user-select: all; padding: .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+        @media (max-width: 600px) { .payment-result { margin: 6rem 1rem 2rem; padding: 1.25rem; } }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo" aria-label="X-Drive home"><span class="logo-mark" aria-hidden="true">X</span><span class="logo-name"> Drive</span></a>
+            <nav class="nav-links" aria-label="Main navigation">
+                <a href="services.html">Services</a>
+                <a href="help.html#order-updates">Order Updates</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="payment-result" aria-labelledby="payment-title">
+            <h1 id="payment-title">Checking payment</h1>
+            <p id="payment-message" role="status" aria-live="polite">X-Drive is verifying the payment directly with Paystack. Please keep this page open.</p>
+            <div class="payment-result-actions">
+                <button id="retry-verification" class="btn btn-secondary" type="button" hidden>Check again</button>
+                <a id="order-link" class="btn btn-primary" href="customer-dashboard/orders.html" hidden>View order</a>
+                <a id="wallet-link" class="btn btn-primary" href="customer-dashboard/wallet.html" hidden>View wallet</a>
+                <a class="btn btn-secondary" href="services.html">Back to services</a>
+            </div>
+            <section id="guest-token-panel" hidden aria-labelledby="guest-token-title" style="margin-top:1.5rem">
+                <h2 id="guest-token-title">Private guest tracking token</h2>
+                <p>Save this token securely. It grants access to this guest order. Do not share it publicly.</p>
+                <code id="guest-tracking-token" class="safe-token"></code>
+                <button id="copy-guest-token" class="btn btn-secondary" type="button" style="margin-top:.75rem">Copy token</button>
+                <p id="copy-token-status" class="text-muted" role="status" aria-live="polite"></p>
+            </section>
+            <p class="text-muted" style="margin-top:1.5rem">This release uses Paystack test mode only. A confirmed payment does not trigger real supplier fulfillment.</p>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/api-config.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/payment-result.js" defer></script>
+</body>
+</html>

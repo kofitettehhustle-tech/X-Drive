@@ -5,10 +5,12 @@ const dotenv = require('dotenv');
 const { createCatalogStore } = require('./catalog-store');
 const { createOrderStore } = require('./order-store');
 const { MoreThanPanelClient } = require('./morethanpanel-client');
+const { registerCommerceRoutes } = require('./commerce-routes');
 
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const app = express();
+app.set('trust proxy', 1);
 const allowedOrigins = new Set(
     (process.env.XDRIVE_ALLOWED_ORIGINS || '')
         .split(',')
@@ -23,25 +25,56 @@ app.use((request, response, next) => {
     if (origin && allowedOrigins.has(origin)) {
         response.set('Access-Control-Allow-Origin', origin);
         response.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        response.set('Access-Control-Allow-Headers', 'Accept, Content-Type');
+        response.set('Access-Control-Allow-Headers', 'Accept, Content-Type, Authorization, Idempotency-Key, X-XDrive-Order-Token');
+        response.set('Access-Control-Max-Age', '600');
         if (request.method === 'OPTIONS') return response.sendStatus(204);
-    } else if (request.method === 'OPTIONS') {
-        return response.sendStatus(403);
+    } else if (origin || request.method === 'OPTIONS') {
+        return response.status(403).json({ error: 'Origin is not allowed.' });
     }
 
     next();
 });
 
-app.use(express.json());
+app.use(express.json({
+    limit: '1mb',
+    verify: (request, response, buffer) => {
+        if (request.path === '/api/payments/webhook') request.rawBody = Buffer.from(buffer);
+    }
+}));
 app.use(express.urlencoded({ extended: true }));
 
 const siteRoot = path.resolve(__dirname, '..');
-const catalogStore = createCatalogStore(
-    process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite')
-);
-const orderStore = createOrderStore(
-    process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite')
-);
+let catalogStore;
+let orderStore;
+let postgresStores = null;
+let catalogCache = null;
+let storeReady;
+if (process.env.DATABASE_URL) {
+    const { createPostgresStores } = require('./postgres-store');
+    postgresStores = createPostgresStores(process.env.DATABASE_URL);
+    catalogStore = postgresStores.catalogStore;
+    orderStore = postgresStores.orderStore;
+    storeReady = postgresStores.initialize().then(async () => {
+        catalogCache = await catalogStore.getCatalog();
+    });
+} else {
+    const databasePath = process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite');
+    catalogStore = createCatalogStore(databasePath);
+    orderStore = createOrderStore(databasePath);
+    catalogCache = catalogStore.getCatalog();
+    storeReady = Promise.resolve();
+}
+
+app.use('/api', async (request, response, next) => {
+    try {
+        await storeReady;
+        return next();
+    } catch (error) {
+        console.error('Database initialization failed:', error.message);
+        return response.status(503).json({ error: 'The X-Drive data store is temporarily unavailable.' });
+    }
+});
+
 const mtpClient = new MoreThanPanelClient(
     process.env.MORETHANPANEL_API_KEY,
     'https://morethanpanel.com/api/v2'
@@ -64,8 +97,13 @@ const platformMatchers = [
     [/linkedin/i, 'LinkedIn']
 ];
 
-let catalogCache = catalogStore.getCatalog();
 let refreshInFlight = null;
+
+registerCommerceRoutes(app, {
+    orderStore,
+    getCatalog: () => catalogCache,
+    allowedOrigins
+});
 
 function getMarkupPercent() {
     const configuredMarkup = process.env.XDRIVE_MARKUP_PERCENT;
@@ -125,6 +163,7 @@ const mockProviderServices = [
 
 async function refreshCatalog() {
     if (refreshInFlight) return refreshInFlight;
+    await storeReady;
 
     const useMockCatalog = process.env.XDRIVE_USE_MOCK_CATALOG === 'true';
     const apiKey = process.env.MORETHANPANEL_API_KEY;
@@ -139,7 +178,7 @@ async function refreshCatalog() {
                     .filter(Boolean);
                 if (!services.length) throw new Error('Mock catalog has no supported services');
 
-                catalogCache = catalogStore.saveCatalog({
+                catalogCache = await catalogStore.saveCatalog({
                     source: 'mock',
                     updatedAt: new Date().toISOString(),
                     services
@@ -169,7 +208,7 @@ async function refreshCatalog() {
 
             if (!normalizedServices.length) throw new Error('Provider catalog has no supported services');
 
-            catalogCache = catalogStore.saveCatalog({
+            catalogCache = await catalogStore.saveCatalog({
                 source: 'morethanpanel',
                 updatedAt: new Date().toISOString(),
                 services: normalizedServices
@@ -234,7 +273,7 @@ app.post('/api/storefront/orders', async (request, response) => {
         const charge = Number(((quantityNum / 1000) * service.pricePer1000).toFixed(2));
         const orderId = `xd-order-${crypto.randomBytes(16).toString('hex')}`;
 
-        const order = orderStore.createOrder({
+        const order = await orderStore.createOrder({
             id: orderId,
             customerEmail,
             serviceId: service.id,
@@ -262,11 +301,11 @@ app.post('/api/storefront/orders', async (request, response) => {
                 quantity: quantityNum
             });
 
-            orderStore.updateOrderWithProviderData(orderId, providerOrder);
+            await orderStore.updateOrderWithProviderData(orderId, providerOrder);
 
             response.status(201).json({
                 success: true,
-                order: orderStore.getOrder(orderId)
+                order: await orderStore.getOrder(orderId)
             });
         } catch (providerError) {
             console.error('Provider order creation failed:', providerError);
@@ -281,7 +320,7 @@ app.post('/api/storefront/orders', async (request, response) => {
 app.get('/api/storefront/orders/:orderId', async (request, response) => {
     try {
         const { orderId } = request.params;
-        const order = orderStore.getOrder(orderId);
+        const order = await orderStore.getOrder(orderId);
 
         if (!order) {
             return response.status(404).json({ error: 'Order not found' });
@@ -290,8 +329,8 @@ app.get('/api/storefront/orders/:orderId', async (request, response) => {
         if (order.providerOrderId) {
             try {
                 const providerStatus = await mtpClient.getOrderStatus(order.providerOrderId);
-                orderStore.updateOrderStatus(orderId, providerStatus);
-                const updatedOrder = orderStore.getOrder(orderId);
+                await orderStore.updateOrderStatus(orderId, providerStatus);
+                const updatedOrder = await orderStore.getOrder(orderId);
                 response.json({ order: updatedOrder });
             } catch (providerError) {
                 response.json({ order });
@@ -313,7 +352,7 @@ app.get('/api/storefront/orders', async (request, response) => {
             return response.status(400).json({ error: 'Email parameter is required' });
         }
 
-        const orders = orderStore.getOrdersByEmail(email);
+        const orders = await orderStore.getOrdersByEmail(email);
         response.json({ orders });
     } catch (error) {
         console.error('Orders retrieval error:', error);
@@ -321,16 +360,16 @@ app.get('/api/storefront/orders', async (request, response) => {
     }
 });
 
-app.get('/api/storefront/orders/:orderId/history', (request, response) => {
+app.get('/api/storefront/orders/:orderId/history', async (request, response) => {
     try {
         const { orderId } = request.params;
-        const order = orderStore.getOrder(orderId);
+        const order = await orderStore.getOrder(orderId);
 
         if (!order) {
             return response.status(404).json({ error: 'Order not found' });
         }
 
-        const history = orderStore.getOrderStatusHistory(orderId);
+        const history = await orderStore.getOrderStatusHistory(orderId);
         response.json({ history });
     } catch (error) {
         console.error('Order history error:', error);
@@ -341,7 +380,7 @@ app.get('/api/storefront/orders/:orderId/history', (request, response) => {
 app.post('/api/storefront/orders/:orderId/refill', async (request, response) => {
     try {
         const { orderId } = request.params;
-        const order = orderStore.getOrder(orderId);
+        const order = await orderStore.getOrder(orderId);
 
         if (!order) {
             return response.status(404).json({ error: 'Order not found' });
@@ -358,7 +397,7 @@ app.post('/api/storefront/orders/:orderId/refill', async (request, response) => 
         const refillResponse = await mtpClient.refillOrder(order.providerOrderId);
         
         if (refillResponse.refill) {
-            orderStore.updateRefillStatus(orderId, refillResponse.refill, 'Pending');
+            await orderStore.updateRefillStatus(orderId, refillResponse.refill, 'Pending');
         }
 
         response.json({
@@ -374,7 +413,7 @@ app.post('/api/storefront/orders/:orderId/refill', async (request, response) => 
 app.post('/api/storefront/orders/:orderId/cancel', async (request, response) => {
     try {
         const { orderId } = request.params;
-        const order = orderStore.getOrder(orderId);
+        const order = await orderStore.getOrder(orderId);
 
         if (!order) {
             return response.status(404).json({ error: 'Order not found' });
@@ -389,7 +428,7 @@ app.post('/api/storefront/orders/:orderId/cancel', async (request, response) => 
         }
 
         const cancelResponse = await mtpClient.cancelOrder(order.providerOrderId);
-        orderStore.markCancelRequested(orderId);
+        await orderStore.markCancelRequested(orderId);
 
         response.json({
             success: true,
@@ -430,26 +469,9 @@ app.post('/api/admin/sync-services', async (request, response) => {
 });
 
 async function getProviderServiceId(publicServiceId) {
-    const db = catalogStore;
-    const catalogData = db.getCatalog();
-    if (!catalogData) return null;
-    
-    const serviceEntry = catalogData.services.find(s => s.id === publicServiceId);
-    if (!serviceEntry) return null;
-    
-    const dbPath = process.env.XDRIVE_DATABASE_PATH || path.resolve(siteRoot, 'data', 'xdrive.sqlite');
-    const { DatabaseSync } = require('node:sqlite');
-    const database = new DatabaseSync(dbPath);
-    
-    try {
-        const stmt = database.prepare('SELECT provider_service_id FROM catalog_services WHERE public_id = ?');
-        const result = stmt.get(publicServiceId);
-        database.close();
-        return result?.provider_service_id || null;
-    } catch {
-        database.close();
-        return null;
-    }
+    const catalogData = catalogCache;
+    if (!catalogData || !catalogData.services.some((service) => service.id === publicServiceId)) return null;
+    return catalogStore.getProviderServiceId(publicServiceId);
 }
 
 app.use(express.static(siteRoot, {
@@ -464,18 +486,28 @@ const weeklyRefreshTimer = setInterval(() => {
 }, weeklyRefreshMs);
 weeklyRefreshTimer.unref();
 
-const server = app.listen(port, () => {
-    console.info(`X Drive is available at http://localhost:${port}`);
-    void refreshCatalog();
+let server = null;
+storeReady.then(() => {
+    server = app.listen(port, () => {
+        console.info(`X Drive is available at http://localhost:${port}`);
+        void refreshCatalog();
+    });
+}).catch(async (error) => {
+    console.error('Data store initialization failed; the server was not started:', error.message);
+    if (postgresStores) await postgresStores.close().catch(() => {});
+    process.exitCode = 1;
 });
 
-function shutdown() {
+async function shutdown() {
     clearInterval(weeklyRefreshTimer);
-    server.close(() => {
+    if (server) await new Promise((resolve) => server.close(resolve));
+    if (postgresStores) {
+        await postgresStores.close();
+    } else {
         catalogStore.close();
         orderStore.close();
-        process.exit(0);
-    });
+    }
+    process.exit(0);
 }
 
 process.on('SIGINT', shutdown);

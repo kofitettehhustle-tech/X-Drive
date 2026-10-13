@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>X-Drive Wallet</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components-rebuilt.css">
+    <link rel="stylesheet" href="../css/ocean-editorial-theme.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/images/xdrive-favicon.svg">
+    <style>
+        .wallet-page { max-width: 900px; margin: 7rem auto 3rem; }
+        .wallet-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: clamp(1rem, 4vw, 2rem); margin: 1rem 0; }
+        .wallet-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; align-items: end; }
+        .wallet-form .form-group { margin: 0; }
+        .wallet-balance { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; margin: .5rem 0; }
+        .wallet-row { display:flex; justify-content:space-between; gap:1rem; border-top:1px solid var(--color-border); padding:.9rem 0; }
+        .wallet-row span { overflow-wrap:anywhere; }
+        @media(max-width:600px){.wallet-page{margin:5rem 1rem 2rem}.wallet-row{display:block}}
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo" aria-label="X-Drive home"><span class="logo-mark" aria-hidden="true">X</span><span class="logo-name"> Drive</span></a>
+            <nav class="nav-links" aria-label="Main navigation"><a href="orders.html">Orders</a><a href="../services.html">Services</a></nav>
+        </div>
+    </header>
+    <main class="container wallet-page">
+        <h1>Wallet</h1>
+        <p class="text-muted">Wallet balance is credited only after the server verifies a successful Paystack transaction.</p>
+        <section class="wallet-card" aria-labelledby="wallet-account-title">
+            <h2 id="wallet-account-title">Account</h2>
+            <p id="wallet-account-status" class="text-muted" role="status" aria-live="polite">Sign in or create an X-Drive account to use wallet deposits.</p>
+            <form id="wallet-account-form" class="wallet-form">
+                <div class="form-group"><label class="form-label" for="wallet-email">Email</label><input class="form-control" id="wallet-email" type="email" autocomplete="email" required></div>
+                <div class="form-group"><label class="form-label" for="wallet-password">Password</label><input class="form-control" id="wallet-password" type="password" autocomplete="current-password" maxlength="128" required></div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap"><button id="wallet-login" class="btn btn-primary" type="submit">Sign in</button><button id="wallet-register" class="btn btn-secondary" type="button">Create account</button><button id="wallet-logout" class="btn btn-secondary" type="button" hidden>Sign out</button></div>
+            </form>
+        </section>
+        <section class="wallet-card" id="wallet-content" hidden aria-labelledby="wallet-balance-title">
+            <h2 id="wallet-balance-title">Available balance</h2>
+            <p id="wallet-balance" class="wallet-balance">—</p>
+            <p id="wallet-state" class="text-muted" role="status" aria-live="polite"></p>
+            <form id="deposit-form" class="wallet-form">
+                <div class="form-group"><label class="form-label" for="deposit-amount">Deposit amount (USD)</label><input class="form-control" id="deposit-amount" type="number" min="1" step="0.01" inputmode="decimal" required></div>
+                <button id="deposit-button" class="btn btn-primary" type="submit">Continue to Paystack</button>
+            </form>
+            <p id="deposit-status" class="text-muted" role="status" aria-live="polite"></p>
+            <p class="text-muted">Test mode only. Wallet funds cannot be used to purchase services while wallet order payments are disabled.</p>
+            <h3 style="margin-top:1.5rem">Recent wallet activity</h3>
+            <div id="wallet-transactions" aria-live="polite"></div>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/wallet.js" defer></script>
+</body>
+</html>
