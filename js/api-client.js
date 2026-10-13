@@ -26,6 +26,30 @@ class XDriveAPIClient {
         }
     }
 
+    setSession(session) {
+        this.accessToken = typeof session?.accessToken === 'string' ? session.accessToken : '';
+        this.customer = session?.customer || null;
+        try {
+            if (this.accessToken) window.sessionStorage.setItem('xdrive_access_token', this.accessToken);
+            else window.sessionStorage.removeItem('xdrive_access_token');
+            if (this.customer) window.sessionStorage.setItem('xdrive_customer', JSON.stringify(this.customer));
+            else window.sessionStorage.removeItem('xdrive_customer');
+        } catch {
+            // The in-memory session still works for the current page if storage is unavailable.
+        }
+    }
+
+    clearSession() {
+        this.accessToken = '';
+        this.customer = null;
+        try {
+            window.sessionStorage.removeItem('xdrive_access_token');
+            window.sessionStorage.removeItem('xdrive_customer');
+        } catch {
+            // Ignore unavailable browser storage.
+        }
+    }
+
     async signInWithSupabase(email, password) {
         if (!this.supabaseClient) {
             throw new Error('Supabase Auth is not configured in the browser.');
@@ -190,6 +214,43 @@ class XDriveAPIClient {
 
     syncServices() {
         return this.request('/api/admin/sync-services', { method: 'POST' });
+    }
+
+    async request(endpoint, options = {}) {
+        const { idempotencyKey, orderToken, unauthenticated = false, ...fetchOptions } = options;
+        const method = String(fetchOptions.method || 'GET').toUpperCase();
+        const headers = {
+            Accept: 'application/json',
+            ...fetchOptions.headers
+        };
+        if (fetchOptions.body && !headers['Content-Type'] && !headers['content-type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+        if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+        if (orderToken) headers['X-XDrive-Order-Token'] = orderToken;
+        if (!unauthenticated && this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`;
+
+        const timeoutSignal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+            ? AbortSignal.timeout(20000)
+            : undefined;
+        const response = await fetch(`${this.baseURL}${endpoint}`, {
+            ...fetchOptions,
+            method,
+            headers,
+            credentials: 'omit',
+            signal: fetchOptions.signal || timeoutSignal
+        });
+
+        let data = {};
+        try { data = await response.json(); } catch { /* Keep the generic HTTP error below. */ }
+        if (!response.ok) {
+            if (response.status === 401 && !endpoint.startsWith('/api/auth/')) this.clearSession();
+            const error = new Error(data.error || `Request failed with status ${response.status}.`);
+            error.status = response.status;
+            error.payload = data;
+            throw error;
+        }
+        return data;
     }
 }
 
