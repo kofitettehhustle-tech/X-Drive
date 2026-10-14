@@ -484,7 +484,7 @@ function createOrderStore(databasePath) {
         const payment = getPayment(reference);
         if (!payment) return null;
         if (payment.customerId) return customerId === payment.customerId ? payment : null;
-        if (payment.kind === 'wallet_deposit' || !payment.orderId || !trackingTokenHash) return null;
+        if (!trackingTokenHash || !payment.orderId) return null;
         const order = getOrder(payment.orderId);
         if (!order || !order.trackingTokenHash) return null;
         const expected = Buffer.from(order.trackingTokenHash, 'hex');
