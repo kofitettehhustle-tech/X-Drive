@@ -1,6 +1,43 @@
 // Main Application Logic for X Drive
 
-document.addEventListener('DOMContentLoaded', () => {
+(() => {
+    const REGION_PRESETS = {
+        GH: { code: 'GH', currency: 'GHS', locale: 'en-GH', label: 'Ghana' },
+        NG: { code: 'NG', currency: 'NGN', locale: 'en-NG', label: 'Nigeria' },
+        US: { code: 'US', currency: 'USD', locale: 'en-US', label: 'United States' },
+        DEFAULT: { code: 'GLOBAL', currency: 'GHS', locale: 'en-US', label: 'Global' }
+    };
+
+    function detectRegion() {
+        const locale = (navigator.language || navigator.languages?.[0] || 'en-US').toLowerCase();
+        const fullLocale = (navigator.language || navigator.languages?.[0] || 'en-US');
+        const zone = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase();
+
+        if (locale.startsWith('en-gh') || locale.startsWith('gh') || zone.includes('ghana')) return REGION_PRESETS.GH;
+        if (locale.startsWith('en-ng') || locale.startsWith('ng') || /lagos|abuja|nigeria/.test(zone)) return REGION_PRESETS.NG;
+        if (locale.startsWith('en-us') || locale.startsWith('us') || /america|united states|new york|los angeles/.test(zone)) return REGION_PRESETS.US;
+        if (/^en[-_]?gh/.test(fullLocale) || /gh/.test(fullLocale)) return REGION_PRESETS.GH;
+        if (/^en[-_]?ng/.test(fullLocale) || /ng/.test(fullLocale)) return REGION_PRESETS.NG;
+        if (/^en[-_]?us/.test(fullLocale) || /us/.test(fullLocale)) return REGION_PRESETS.US;
+
+        return REGION_PRESETS.DEFAULT;
+    }
+
+    const region = detectRegion();
+    window.XDriveRegion = region;
+    window.XDRIVE_REGION = region.code;
+    window.XDRIVE_DISPLAY_CURRENCY = region.currency;
+
+    window.formatCurrency = (amount, currency = window.XDRIVE_DISPLAY_CURRENCY || 'GHS') => {
+        const safeCurrency = String(currency || window.XDRIVE_DISPLAY_CURRENCY || 'GHS').toUpperCase();
+        const locale = region.locale || 'en-US';
+        return new Intl.NumberFormat(locale, {
+            style: 'currency',
+            currency: safeCurrency,
+            maximumFractionDigits: safeCurrency === 'JPY' ? 0 : 2
+        }).format(Number(amount || 0));
+    };
+
     const revealItems = document.querySelectorAll('[data-scroll-reveal]');
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -76,24 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Format Currency Helper
-    const localeCurrency = (() => {
-        const locale = (navigator.language || 'en-US').toLowerCase();
-        if (locale.startsWith('en-gh') || locale.startsWith('gh')) return 'GHS';
-        if (locale.startsWith('en-ng') || locale.startsWith('ng')) return 'NGN';
-        if (locale.startsWith('en-us') || locale.startsWith('en')) return 'USD';
-        return 'GHS';
-    })();
-    window.XDRIVE_DISPLAY_CURRENCY = localeCurrency;
-
-    window.formatCurrency = (amount, currency = window.XDRIVE_DISPLAY_CURRENCY || 'GHS') => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency
-        }).format(amount);
-    };
-
-    // 4. Utility: Populate Services Table (Example for Reseller/Admin)
+    // 3. Utility: Populate Services Table (Example for Reseller/Admin)
     window.populateServicesTable = (tableBodyId, role = 'CUSTOMER') => {
         const tbody = document.getElementById(tableBodyId);
         if (!tbody || !window.XDriveMockData) return;
@@ -138,4 +158,4 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         });
     };
-});
+})();

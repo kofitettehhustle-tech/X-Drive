@@ -26,13 +26,9 @@
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(minor || 0) / 100);
     }
 
-    function parseMinorUnits(value) {
-        const text = String(value).trim();
-        if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return null;
-        const [whole, fractional = ''] = text.split('.');
-        const minor = Number(whole) * 100 + Number((fractional + '00').slice(0, 2));
-        return Number.isSafeInteger(minor) ? minor : null;
-    }
+    const currencyLabel = document.getElementById('wallet-currency-label');
+    const detectedCurrency = (window.XDRIVE_DISPLAY_CURRENCY || 'GHS').toUpperCase();
+    if (currencyLabel) currencyLabel.textContent = detectedCurrency;
 
     function setAccount(customer) {
         emailInput.value = customer.email;
@@ -60,13 +56,13 @@
     async function refreshWallet() {
         try {
             const wallet = await window.xdriveAPI.getWallet();
-            document.getElementById('wallet-balance').textContent = formatMoney(wallet.balanceMinor, wallet.currency || 'USD');
+            document.getElementById('wallet-balance').textContent = formatMoney(wallet.balanceMinor, wallet.currency || detectedCurrency);
             limits = wallet.depositLimits || limits;
             walletOrderPaymentsEnabled = Boolean(wallet.walletOrderPaymentsEnabled);
             const amountInput = document.getElementById('deposit-amount');
             amountInput.min = (limits.minMinor / 100).toFixed(2);
             amountInput.max = (limits.maxMinor / 100).toFixed(2);
-            setStatus(walletState, `Deposit limits: ${formatMoney(limits.minMinor, wallet.currency)} to ${formatMoney(limits.maxMinor, wallet.currency)}. Wallet-funded service orders are ${walletOrderPaymentsEnabled ? 'enabled' : 'disabled'}.`);
+            setStatus(walletState, `Deposit limits: ${formatMoney(limits.minMinor, wallet.currency || detectedCurrency)} to ${formatMoney(limits.maxMinor, wallet.currency || detectedCurrency)}. Wallet-funded service orders are ${walletOrderPaymentsEnabled ? 'enabled' : 'disabled'}.`);
             const transactions = document.getElementById('wallet-transactions');
             transactions.replaceChildren();
             if (!wallet.transactions?.length) {
@@ -79,7 +75,7 @@
                 const label = document.createElement('span');
                 label.textContent = `${entry.kind.replaceAll('_', ' ')} · ${new Date(entry.createdAt).toLocaleString()}`;
                 const amount = document.createElement('strong');
-                amount.textContent = formatMoney(entry.amountMinor, entry.currency);
+                amount.textContent = formatMoney(entry.amountMinor, entry.currency || detectedCurrency);
                 row.append(label, amount);
                 transactions.appendChild(row);
             }
