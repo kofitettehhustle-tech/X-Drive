@@ -94,7 +94,7 @@ function getConfiguredCurrency() {
 function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins }) {
     const secretKey = process.env.PAYSTACK_SECRET_KEY || '';
     const paystackClient = new PaystackClient(secretKey);
-    const allowlistedOrigins = allowedOrigins instanceof Set ? allowlistedOrigins : new Set();
+    const allowlistedOrigins = allowedOrigins instanceof Set ? allowedOrigins : new Set();
     const isLimited = createWindowLimiter();
     const configuredCurrency = getConfiguredCurrency();
 
