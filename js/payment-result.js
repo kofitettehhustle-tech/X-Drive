@@ -23,6 +23,11 @@
         retryButton.hidden = !retry;
     }
 
+    function displayCurrencyForResult(result) {
+        const preferred = (window.XDRIVE_DISPLAY_CURRENCY || 'GHS').toUpperCase();
+        return preferred || (result?.currency || 'GHS');
+    }
+
     async function verify() {
         if (!reference) {
             show('No Paystack reference was returned. If you completed payment, contact X-Drive support and include the payment receipt reference.', {
@@ -46,8 +51,9 @@
                 let balanceLine = '';
                 try {
                     const wallet = await window.xdriveAPI.getWallet();
+                    const displayCurrency = displayCurrencyForResult(wallet || result);
                     const amount = Number(wallet.balanceMinor || 0) / 100;
-                    balanceLine = ` Your available wallet balance is ${new Intl.NumberFormat('en-US', { style: 'currency', currency: wallet.currency || result.currency || 'USD' }).format(amount)}.`;
+                    balanceLine = ` Your available wallet balance is ${new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(amount)}.`;
                 } catch {
                     balanceLine = ' Your wallet balance will appear after signing in again if needed.';
                 }

@@ -33,9 +33,10 @@
     }
 
     function formatCurrency(amount) {
+        const displayCurrency = (window.XDRIVE_DISPLAY_CURRENCY || 'GHS').toUpperCase();
         return typeof window.formatCurrency === 'function'
-            ? window.formatCurrency(amount)
-            : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+            ? window.formatCurrency(amount, displayCurrency)
+            : new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(amount);
     }
 
     function createOpaqueToken() {

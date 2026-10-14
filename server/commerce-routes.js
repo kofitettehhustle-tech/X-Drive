@@ -20,7 +20,7 @@ const {
     hasSupabaseConfig
 } = require('./supabase-auth');
 
-const CURRENCY = 'USD';
+const CURRENCY = 'GHS';
 const MINOR_DIGITS = 2;
 const KNOWN_PROVIDER_STATUSES = new Set(['pending', 'ongoing', 'processing', 'queued', 'failed', 'abandoned', 'reversed']);
 

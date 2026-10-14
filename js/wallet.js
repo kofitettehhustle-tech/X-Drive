@@ -22,7 +22,7 @@
         node.setAttribute('aria-invalid', String(error));
     }
 
-    function formatMoney(minor, currency = 'USD') {
+    function formatMoney(minor, currency = window.XDRIVE_DISPLAY_CURRENCY || 'GHS') {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(minor || 0) / 100);
     }
 

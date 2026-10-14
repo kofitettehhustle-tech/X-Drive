@@ -26,9 +26,10 @@
         article.appendChild(heading);
         const grid = document.createElement('div');
         grid.className = 'order-grid';
+        const displayCurrency = (window.XDRIVE_DISPLAY_CURRENCY || 'GHS').toUpperCase();
         const fields = [
             ['Order ID', order.id], ['Platform', order.platform], ['Quantity', Number(order.quantity || 0).toLocaleString()],
-            ['Charge', new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(order.charge || 0))],
+            ['Charge', new Intl.NumberFormat('en-US', { style: 'currency', currency: displayCurrency }).format(Number(order.charge || 0))],
             ['Payment', order.paymentStatus || 'pending'], ['Created', order.createdAt ? new Date(order.createdAt).toLocaleString() : '—'],
             ['Target', order.link || '—']
         ];

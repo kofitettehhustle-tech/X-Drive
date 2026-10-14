@@ -77,7 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 3. Format Currency Helper
-    window.formatCurrency = (amount, currency = 'USD') => {
+    const localeCurrency = (() => {
+        const locale = (navigator.language || 'en-US').toLowerCase();
+        if (locale.startsWith('en-gh') || locale.startsWith('gh')) return 'GHS';
+        if (locale.startsWith('en-ng') || locale.startsWith('ng')) return 'NGN';
+        if (locale.startsWith('en-us') || locale.startsWith('en')) return 'USD';
+        return 'GHS';
+    })();
+    window.XDRIVE_DISPLAY_CURRENCY = localeCurrency;
+
+    window.formatCurrency = (amount, currency = window.XDRIVE_DISPLAY_CURRENCY || 'GHS') => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: currency
