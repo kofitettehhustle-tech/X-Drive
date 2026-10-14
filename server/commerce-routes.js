@@ -430,7 +430,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
         } catch (error) {
             if (error.code === 'IDEMPOTENCY_CONFLICT') return response.status(409).json({ error: error.message });
             console.error('Could not create pending checkout record:', error.message);
-            return response.status(500).json({ error: 'Unable to start checkout.' });
+            return response.status(500).json({ error: error.message || 'Unable to start checkout.' });
         }
 
         const payment = created.payment;
