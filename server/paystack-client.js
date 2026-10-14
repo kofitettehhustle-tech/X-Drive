@@ -91,7 +91,8 @@ class PaystackClient {
         }
 
         if (!response.ok || payload?.status !== true || !payload.data) {
-            throw new Error('Paystack could not complete the request.');
+            const message = payload?.message || payload?.error || `HTTP ${response.status}`;
+            throw new Error(`Paystack could not complete the request: ${message}`);
         }
 
         return payload.data;

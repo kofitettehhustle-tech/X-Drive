@@ -469,7 +469,9 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
                 console.error('Could not record failed checkout initialization:', storeError.message);
             }
             console.error('Paystack checkout initialization failed:', error.message);
-            if (!response.headersSent) response.status(502).json({ error: 'Paystack could not start checkout. No service has been submitted.' });
+            if (!response.headersSent) response.status(502).json({
+                error: error.message || 'Paystack could not start checkout. No service has been submitted.'
+            });
         }
     });
 
