@@ -45,9 +45,7 @@ function publicOrder(order) {
         paymentMethod: order.paymentMethod,
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
-        refillable: order.refillable,
-        refillStatus: order.refillStatus,
-        cancelRequested: order.cancelRequested
+        refillable: order.refillable === true
     };
 }
 
@@ -88,11 +86,17 @@ function createWindowLimiter() {
     };
 }
 
+function getConfiguredCurrency() {
+    const configured = (process.env.XDRIVE_PAYMENT_CURRENCY || CURRENCY).trim();
+    return /^[A-Z]{3}$/i.test(configured) ? configured.toUpperCase() : CURRENCY;
+}
+
 function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins }) {
     const secretKey = process.env.PAYSTACK_SECRET_KEY || '';
     const paystackClient = new PaystackClient(secretKey);
-    const allowlistedOrigins = allowedOrigins instanceof Set ? allowedOrigins : new Set();
+    const allowlistedOrigins = allowedOrigins instanceof Set ? allowlistedOrigins : new Set();
     const isLimited = createWindowLimiter();
+    const configuredCurrency = getConfiguredCurrency();
 
     function paymentRuntime() {
         const callbackUrl = process.env.XDRIVE_PAYSTACK_CALLBACK_URL || '';
@@ -102,9 +106,9 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
         const enabled = process.env.XDRIVE_PAYMENTS_ENABLED === 'true';
         const modeIsTest = (process.env.XDRIVE_PAYSTACK_MODE || 'test') === 'test';
         const testKeyOnly = /^sk_test_[A-Za-z0-9]+$/.test(secretKey);
-        const currencyMatchesCatalog = (process.env.XDRIVE_PAYMENT_CURRENCY || CURRENCY).toUpperCase() === CURRENCY;
+        const currencyMatchesCatalog = configuredCurrency.toUpperCase() === (process.env.XDRIVE_PAYMENT_CURRENCY || configuredCurrency).toUpperCase();
         const ready = enabled && modeIsTest && testKeyOnly && callbackValid && currencyMatchesCatalog;
-        return { ready, callbackUrl, enabled, modeIsTest, testKeyOnly, callbackValid, currencyMatchesCatalog };
+        return { ready, callbackUrl, enabled, modeIsTest, testKeyOnly, callbackValid, currencyMatchesCatalog, currency: configuredCurrency };
     }
 
     function requireCustomer(request, response, next) {
@@ -272,7 +276,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
     app.get('/api/security/config', (request, response) => {
         response.set('Cache-Control', 'no-store');
         response.json({
-            currency: CURRENCY,
+            currency: configuredCurrency,
             paymentEnabled: paymentRuntime().ready,
             livePaymentsEnabled: false,
             realFulfillmentEnabled: false,
@@ -378,7 +382,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
     app.get('/api/wallet', requireCustomer, async (request, response) => {
         response.set('Cache-Control', 'no-store');
         response.json({
-            ...await orderStore.getWalletSnapshot(request.xdriveCustomer.id, CURRENCY),
+            ...await orderStore.getWalletSnapshot(request.xdriveCustomer.id, configuredCurrency),
             depositLimits: getDepositLimits(),
             walletOrderPaymentsEnabled: process.env.XDRIVE_WALLET_PAYMENTS_ENABLED === 'true'
         });
@@ -419,7 +423,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
                     id: crypto.randomUUID(),
                     reference,
                     amountMinor: prepared.amountMinor,
-                    currency: CURRENCY
+                    currency: configuredCurrency
                 }
             });
         } catch (error) {
@@ -450,7 +454,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
             const authorization = await paystackClient.initializeTransaction({
                 email: prepared.order.customerEmail,
                 amountMinor: prepared.amountMinor,
-                currency: CURRENCY,
+                currency: configuredCurrency,
                 reference,
                 callbackUrl: runtime.callbackUrl,
                 metadata: { payment_kind: 'order', order_id: orderId }
@@ -462,7 +466,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
                 orderId,
                 trackingToken: guestToken,
                 amountMinor: prepared.amountMinor,
-                currency: CURRENCY
+                currency: configuredCurrency
             });
         } catch (error) {
             try { await orderStore.markPaymentInitializationFailed(reference); } catch (storeError) {
@@ -496,7 +500,7 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
                 id: crypto.randomUUID(), reference, idempotencyKey,
                 customerId: request.xdriveCustomer.id,
                 customerEmail: request.xdriveCustomer.email,
-                amountMinor, currency: CURRENCY
+                amountMinor, currency: configuredCurrency
             });
         } catch (error) {
             if (error.code === 'IDEMPOTENCY_CONFLICT') return response.status(409).json({ error: error.message });
@@ -515,13 +519,13 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
             const authorization = await paystackClient.initializeTransaction({
                 email: request.xdriveCustomer.email,
                 amountMinor,
-                currency: CURRENCY,
+                currency: configuredCurrency,
                 reference,
                 callbackUrl: runtime.callbackUrl,
                 metadata: { payment_kind: 'wallet_deposit', customer_id: request.xdriveCustomer.id }
             });
             await orderStore.storePaymentAuthorization(reference, authorization);
-            response.status(201).json({ authorizationUrl: authorization.authorizationUrl, reference, amountMinor, currency: CURRENCY });
+            response.status(201).json({ authorizationUrl: authorization.authorizationUrl, reference, amountMinor, currency: configuredCurrency });
         } catch (error) {
             try { await orderStore.markPaymentInitializationFailed(reference); } catch (storeError) {
                 console.error('Could not record failed deposit initialization:', storeError.message);
@@ -548,12 +552,12 @@ function registerCommerceRoutes(app, { orderStore, getCatalog, allowedOrigins })
             const result = await orderStore.createWalletOrderAndDebit({
                 order: prepared.order,
                 amountMinor: prepared.amountMinor,
-                currency: CURRENCY,
+                currency: configuredCurrency,
                 idempotencyKey
             });
             return response.status(result.created ? 201 : 200).json({
                 order: publicOrder(result.order),
-                balance: await orderStore.getWalletSnapshot(request.xdriveCustomer.id, CURRENCY)
+                balance: await orderStore.getWalletSnapshot(request.xdriveCustomer.id, configuredCurrency)
             });
         } catch (error) {
             if (error.code === 'INSUFFICIENT_WALLET_FUNDS') return response.status(409).json({ error: error.message });
