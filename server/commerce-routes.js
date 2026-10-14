@@ -32,6 +32,7 @@ function publicOrder(order) {
     if (!order) return null;
     return {
         id: order.id,
+        supplierTrackingCode: order.supplierTrackingCode || null,
         serviceId: order.serviceId,
         serviceTitle: order.serviceTitle,
         platform: order.platform,

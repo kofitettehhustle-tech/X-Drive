@@ -36,6 +36,7 @@ function createOrderStore(databasePath) {
             payment_method TEXT,
             payment_reference TEXT,
             tracking_token_hash TEXT,
+            supplier_tracking_code TEXT,
             checkout_idempotency_key TEXT
         );
 
@@ -127,7 +128,8 @@ function createOrderStore(databasePath) {
         ['payment_method', 'TEXT'],
         ['payment_reference', 'TEXT'],
         ['tracking_token_hash', 'TEXT'],
-        ['checkout_idempotency_key', 'TEXT']
+        ['checkout_idempotency_key', 'TEXT'],
+        ['supplier_tracking_code', 'TEXT']
     ];
     for (const [column, definition] of requiredOrderColumns) {
         if (!existingOrderColumns.has(column)) database.exec(`ALTER TABLE orders ADD COLUMN ${column} ${definition}`);
@@ -175,6 +177,7 @@ function createOrderStore(databasePath) {
             paymentMethod: order.payment_method || null,
             paymentReference: order.payment_reference || null,
             trackingTokenHash: order.tracking_token_hash || null,
+            supplierTrackingCode: order.supplier_tracking_code || null,
             checkoutIdempotencyKey: order.checkout_idempotency_key || null,
             createdAt: order.created_at,
             updatedAt: order.updated_at,
@@ -212,7 +215,7 @@ function createOrderStore(databasePath) {
         return database.prepare(`
             SELECT id, provider_order_id, customer_email, customer_id, service_id, service_title, platform,
                    link, quantity, charge, start_count, remains, status, payment_status, payment_method,
-                   payment_reference, tracking_token_hash, checkout_idempotency_key, created_at, updated_at,
+                   payment_reference, tracking_token_hash, supplier_tracking_code, checkout_idempotency_key, created_at, updated_at,
                    refillable, refill_id, refill_status, cancel_requested
             FROM orders WHERE id = ?
         `).get(orderId);
@@ -275,7 +278,7 @@ function createOrderStore(databasePath) {
                 INSERT INTO orders (
                     id, customer_email, service_id, service_title, platform, link, quantity, charge,
                     status, created_at, updated_at, refillable, customer_id, payment_status,
-                    payment_method, payment_reference, tracking_token_hash, checkout_idempotency_key
+                    payment_method, payment_reference, tracking_token_hash, supplier_tracking_code, checkout_idempotency_key
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'pending', 'paystack', ?, ?, ?)
             `).run(
                 order.id, order.customerEmail, order.serviceId, order.serviceTitle, order.platform,
@@ -355,7 +358,7 @@ function createOrderStore(databasePath) {
                 INSERT INTO orders (
                     id, customer_email, service_id, service_title, platform, link, quantity, charge,
                     status, created_at, updated_at, refillable, customer_id, payment_status,
-                    payment_method, payment_reference, checkout_idempotency_key
+                    payment_method, payment_reference, tracking_token_hash, supplier_tracking_code, checkout_idempotency_key
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid', 'wallet', ?, ?)
             `).run(
                 order.id, order.customerEmail, order.serviceId, order.serviceTitle, order.platform,
@@ -603,24 +606,20 @@ function createOrderStore(databasePath) {
     }
 
     function getOrder(orderId) {
-        return mapOrder(selectOrder(orderId));
+        const row = selectOrder(orderId);
+        if (!row) return null;
+        return mapOrder(row);
     }
 
-    function getAuthorizedOrder(orderId, { customerId = null, trackingTokenHash = null } = {}) {
-        const order = getOrder(orderId);
-        if (!order) return null;
-        if (order.customerId) return customerId === order.customerId ? order : null;
-        if (!trackingTokenHash || !order.trackingTokenHash) return null;
-        const expected = Buffer.from(order.trackingTokenHash, 'hex');
-        const supplied = Buffer.from(trackingTokenHash, 'hex');
-        return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied) ? order : null;
-    }
-
-    function getOrdersForCustomer(customerId, limit = 50) {
+    function getOrdersForCustomer(customerId) {
         const rows = database.prepare(`
-            SELECT id FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT ?
-        `).all(customerId, limit);
-        return rows.map((row) => getOrder(row.id));
+            SELECT id, provider_order_id, customer_email, customer_id, service_id, service_title, platform,
+                   link, quantity, charge, start_count, remains, status, payment_status, payment_method,
+                   payment_reference, tracking_token_hash, supplier_tracking_code, checkout_idempotency_key, created_at, updated_at,
+                   refillable, refill_id, refill_status, cancel_requested
+            FROM orders WHERE customer_id = ? ORDER BY created_at DESC
+        `).all(customerId);
+        return rows.map(mapOrder);
     }
 
     function getOrdersByEmail(email, limit = 50) {

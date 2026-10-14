@@ -55,10 +55,10 @@
 
         <section class="dashboard-card" aria-labelledby="guest-heading">
             <h2 id="guest-heading">Track a guest order</h2>
-            <p class="text-muted">Enter the order ID and private tracking token from the payment confirmation. Keep the token private; it grants access to that order.</p>
+            <p class="text-muted">Enter the order ID and private guest access token from the payment confirmation. Keep the token private; it grants access to that order and is not the supplier tracking reference.</p>
             <form id="guest-form" class="dashboard-form">
                 <div class="form-group"><label class="form-label" for="guest-order-id">Order ID</label><input class="form-control" id="guest-order-id" autocomplete="off" required></div>
-                <div class="form-group"><label class="form-label" for="guest-token">Private tracking token</label><input class="form-control" id="guest-token" type="password" autocomplete="off" required></div>
+                <div class="form-group"><label class="form-label" for="guest-token">Private guest access token</label><input class="form-control" id="guest-token" type="password" autocomplete="off" required></div>
                 <button class="btn btn-primary" type="submit">Track order</button>
             </form>
             <p id="guest-status" class="status-message text-muted" role="status" aria-live="polite"></p>
