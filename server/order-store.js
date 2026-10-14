@@ -492,6 +492,16 @@ function createOrderStore(databasePath) {
         return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied) ? payment : null;
     }
 
+    function getAuthorizedOrder(orderId, { customerId = null, trackingTokenHash = null } = {}) {
+        const order = getOrder(orderId);
+        if (!order) return null;
+        if (order.customerId) return customerId === order.customerId ? order : null;
+        if (!trackingTokenHash || !order.trackingTokenHash) return null;
+        const expected = Buffer.from(order.trackingTokenHash, 'hex');
+        const supplied = Buffer.from(trackingTokenHash, 'hex');
+        return expected.length === supplied.length && crypto.timingSafeEqual(expected, supplied) ? order : null;
+    }
+
     function createCustomer({ id, email, emailNormalized, passwordSalt, passwordHash }) {
         const now = new Date().toISOString();
         database.prepare(`
@@ -745,6 +755,7 @@ function createOrderStore(databasePath) {
         getPayment,
         getPaymentForOrder,
         getAuthorizedPayment,
+        getAuthorizedOrder,
         createCustomer,
         getCustomerByEmail,
         getCustomerById,
@@ -758,7 +769,6 @@ function createOrderStore(databasePath) {
         updateOrderWithProviderData,
         updateOrderStatus,
         getOrder,
-        getAuthorizedOrder,
         getOrdersForCustomer,
         getOrdersByEmail,
         getOrderStatusHistory,
