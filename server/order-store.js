@@ -279,11 +279,11 @@ function createOrderStore(databasePath) {
                     id, customer_email, service_id, service_title, platform, link, quantity, charge,
                     status, created_at, updated_at, refillable, customer_id, payment_status,
                     payment_method, payment_reference, tracking_token_hash, supplier_tracking_code, checkout_idempotency_key
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'pending', 'paystack', ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'pending', 'paystack', ?, ?, ?, ?)
             `).run(
                 order.id, order.customerEmail, order.serviceId, order.serviceTitle, order.platform,
                 order.link, order.quantity, order.charge, now, now, order.refillable ? 1 : 0,
-                order.customerId || null, payment.reference, trackingTokenHash || null, idempotencyKey
+                order.customerId || null, 'pending', 'paystack', payment.reference, trackingTokenHash || null, null, idempotencyKey
             );
 
             database.prepare(`
@@ -359,11 +359,11 @@ function createOrderStore(databasePath) {
                     id, customer_email, service_id, service_title, platform, link, quantity, charge,
                     status, created_at, updated_at, refillable, customer_id, payment_status,
                     payment_method, payment_reference, tracking_token_hash, supplier_tracking_code, checkout_idempotency_key
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid', 'wallet', ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid', 'wallet', ?, ?, ?, ?)
             `).run(
                 order.id, order.customerEmail, order.serviceId, order.serviceTitle, order.platform,
                 order.link, order.quantity, order.charge, now, now, order.refillable ? 1 : 0,
-                order.customerId, ledgerReference, idempotencyKey
+                order.customerId, ledgerReference, null, null, idempotencyKey
             );
             database.prepare(`
                 INSERT INTO wallet_ledger (id, customer_id, reference, amount_minor, currency, kind, order_id, created_at)
