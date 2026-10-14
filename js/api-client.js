@@ -147,6 +147,10 @@ class XDriveAPIClient {
         return this.request('/api/auth/me');
     }
 
+    getSecurityConfig() {
+        return this.request('/api/security/config');
+    }
+
     initializeOrderPayment(orderData, { trackingToken = null, idempotencyKey } = {}) {
         return this.request('/api/payments/orders', {
             method: 'POST',
