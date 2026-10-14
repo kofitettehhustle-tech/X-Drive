@@ -11,6 +11,8 @@
     const registerButton = document.getElementById('wallet-register');
     const logoutButton = document.getElementById('wallet-logout');
     const depositButton = document.getElementById('deposit-button');
+    const payFromWalletButton = document.getElementById('wallet-pay-now');
+    const useWalletSection = document.getElementById('wallet-use-section');
     let limits = { minMinor: 100, maxMinor: 500000 };
     let paymentEnabled = false;
     let walletOrderPaymentsEnabled = false;
@@ -163,6 +165,7 @@
             setStatus(depositStatus, `Payment configuration unavailable: ${error.message}`, true);
             depositButton.disabled = true;
         }
+        await maybeLoadWalletUseState();
         if (window.xdriveAPI.accessToken) {
             try {
                 const current = await window.xdriveAPI.getCurrentCustomer();
@@ -182,3 +185,17 @@
         }
     })();
 })();
+
+async function maybeLoadWalletUseState() {
+    if (!window.xdriveAPI.accessToken) return;
+    try {
+        const wallet = await window.xdriveAPI.getWallet();
+        walletOrderPaymentsEnabled = Boolean(wallet.walletOrderPaymentsEnabled);
+        if (walletOrderPaymentsEnabled && useWalletSection) {
+            useWalletSection.hidden = false;
+            useWalletSection.textContent = 'Wallet order payments are enabled. You can use your balance on checkout when available.';
+        }
+    } catch {
+        walletOrderPaymentsEnabled = false;
+    }
+}

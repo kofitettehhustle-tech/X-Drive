@@ -48,7 +48,9 @@
                 <button id="deposit-button" class="btn btn-primary" type="submit">Continue to Paystack</button>
             </form>
             <p id="deposit-status" class="text-muted" role="status" aria-live="polite"></p>
-            <p class="text-muted">Test mode only. Wallet funds cannot be used to purchase services while wallet order payments are disabled.</p>
+            <p class="text-muted">Test mode only. Wallet funds are credited after successful Paystack verification and can be used for service purchases when wallet order payments are enabled.</p>
+            <div id="wallet-use-section" hidden class="text-muted"></div>
+            <button id="wallet-pay-now" class="btn btn-secondary" type="button" hidden>Use wallet</button>
             <h3 style="margin-top:1.5rem">Recent wallet activity</h3>
             <div id="wallet-transactions" aria-live="polite"></div>
         </section>

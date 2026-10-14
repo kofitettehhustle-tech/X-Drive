@@ -90,6 +90,53 @@
         document.getElementById('summary-total').textContent = formatCurrency(quantity / 1000 * selectedService.pricePer1000);
     }
 
+    const walletPayOption = document.getElementById('wallet-pay-option');
+    const walletUseBalance = document.getElementById('use-wallet-balance');
+    const walletBalanceNote = document.getElementById('wallet-balance-note');
+    let walletBalance = 0;
+    let walletCurrency = 'GHS';
+    let walletOrderPaymentsEnabled = false;
+
+    function getOrderTotalMinor() {
+        if (!selectedService) return 0;
+        const quantity = Number(qtyInput.value || 0);
+        const priceTotal = (quantity / 1000) * Number(selectedService.pricePer1000 || 0);
+        return Math.round(priceTotal * 100);
+    }
+
+    function updateWalletPaymentOption() {
+        const signedIn = Boolean(window.xdriveAPI.accessToken);
+        if (!signedIn || !walletOrderPaymentsEnabled) {
+            walletPayOption.hidden = true;
+            walletUseBalance.checked = false;
+            return;
+        }
+        const totalMinor = getOrderTotalMinor();
+        const enough = walletBalance >= totalMinor;
+        walletPayOption.hidden = false;
+        walletUseBalance.disabled = !enough;
+        if (!enough) {
+            walletUseBalance.checked = false;
+            walletBalanceNote.textContent = `Wallet available: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: walletCurrency }).format(walletBalance / 100)}. Need ${new Intl.NumberFormat('en-US', { style: 'currency', currency: walletCurrency }).format(totalMinor / 100)}.`;
+            return;
+        }
+        walletBalanceNote.textContent = `Wallet available: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: walletCurrency }).format(walletBalance / 100)}. This order can be paid from wallet balance.`;
+    }
+
+    async function loadWalletStatus() {
+        if (!window.xdriveAPI.accessToken) return;
+        try {
+            const wallet = await window.xdriveAPI.getWallet();
+            walletBalance = Number(wallet.balanceMinor || 0);
+            walletCurrency = wallet.currency || securityConfig?.currency || 'GHS';
+            walletOrderPaymentsEnabled = Boolean(wallet.walletOrderPaymentsEnabled);
+            updateWalletPaymentOption();
+        } catch {
+            walletOrderPaymentsEnabled = false;
+            walletPayOption.hidden = true;
+        }
+    }
+
     async function initialize() {
         const params = new URLSearchParams(window.location.search);
         const serviceId = params.get('service');
@@ -174,7 +221,10 @@
         document.getElementById('account-state').textContent = 'Signed out. You can continue as a guest or use another account.';
     });
 
-    qtyInput.addEventListener('input', updateSummary);
+    qtyInput.addEventListener('input', () => {
+        updateSummary();
+        updateWalletPaymentOption();
+    });
     [linkInput, emailInput, qtyInput].forEach((input) => input.addEventListener('input', resetCheckoutAttempt));
 
     form.addEventListener('submit', async (event) => {
@@ -185,6 +235,38 @@
         if (!Number.isSafeInteger(quantity) || quantity < selectedService.minimum || quantity > selectedService.maximum) {
             setStatus(`Quantity must be a whole number between ${selectedService.minimum.toLocaleString()} and ${selectedService.maximum.toLocaleString()}.`, true);
             return;
+        }
+
+        const useWallet = walletOrderPaymentsEnabled && walletUseBalance && walletUseBalance.checked;
+        const totalMinor = getOrderTotalMinor();
+        if (useWallet) {
+            if (walletBalance < totalMinor) {
+                setStatus('Your wallet balance is not enough for this order. Use Paystack or add more funds.', true);
+                return;
+            }
+            setStatus('Paying from wallet balance…');
+            submitButton.disabled = true;
+            try {
+                const orderData = {
+                    serviceId: selectedService.id,
+                    link: linkInput.value.trim(),
+                    quantity,
+                    customerEmail: emailInput.value.trim()
+                };
+                const idKey = idempotencyKey || (window.crypto.randomUUID ? window.crypto.randomUUID() : String(Date.now()));
+                const result = await window.xdriveAPI.payOrderFromWallet(orderData, idKey);
+                if (result.order) {
+                    setStatus('Wallet payment successful. Your order is recorded and will be processed when fulfillment is enabled.');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Order placed';
+                    return;
+                }
+                throw new Error(result.error || 'Wallet payment could not be completed.');
+            } catch (error) {
+                setStatus(error.message || 'Wallet payment failed.', true);
+                submitButton.disabled = false;
+                return;
+            }
         }
 
         submitButton.disabled = true;
@@ -238,4 +320,5 @@
 
     setAccountMode('guest');
     initialize();
+    loadWalletStatus();
 })();
